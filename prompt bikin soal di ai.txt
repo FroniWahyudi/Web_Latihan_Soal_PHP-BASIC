@@ -1,0 +1,40 @@
+Buat satu set berisi [jumlah] soal pilihan ganda tentang [topik], yang mencakup semua aspek yang dibahas dalam materi yang diberikan. 
+Setiap soal harus memiliki empat opsi jawaban (a, b, c, d), dengan satu jawaban benar yang ditandai secara jelas dengan "(benar)". 
+Pastikan posisi jawaban benar diacak untuk setiap soal agar tidak ada pola yang terdeteksi. Soal-soal harus disusun dengan struktur 
+yang mirip dengan contoh berikut:
+
+Soal [kategori1]: [Pertanyaan berdasarkan materi]
+
+a. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+b. [Opsi benar] (benar)
+
+c. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+d. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+Soal [kategori2]: [Pertanyaan berdasarkan materi]
+
+a. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+b. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+c. [Opsi benar] (benar)
+
+d. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+Soal [kategori3]: [Pertanyaan berdasarkan materi]
+
+a. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+b. [Opsi benar] (benar)
+
+c. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+d. [Opsi salah yang sangat mirip dengan jawaban benar]
+
+Pastikan bahwa setiap soal dan opsi jawaban menggunakan kata, kalimat, atau potongan kata yang sama atau sangat serupa dengan materi yang diberikan, 
+sehingga opsi jawaban salah terlihat menyerupai jawaban benar. Tujuannya adalah agar siswa harus menghafal dan mengingat kata-kata dari materi dengan 
+akurat serta berpikir kritis untuk membedakan jawaban benar di antara opsi yang menantang. Soal-soal harus komprehensif, mencakup semua aspek yang 
+disebutkan dalam materi, dan jawaban benar harus sesuai persis dengan materi serta ditandai dengan jelas.
+Materi yang digunakan adalah sebagai berikut: [materi]
