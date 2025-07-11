@@ -245,4 +245,11 @@ function deleteSubjectWithQuestions($id) {
         return false;
     }
 }
+
+function getQuestionsBySubject($subject_id) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT * FROM questions WHERE subject_id = ? ORDER BY created_at");
+    $stmt->execute([$subject_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>

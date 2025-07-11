@@ -88,11 +88,11 @@ CREATE TABLE quiz_attempts (
 
 -- Insert data pengguna (dengan hash password yang valid)
 INSERT INTO users (email, username, password, name, role)
-SELECT 'admin@edukasi.com', 'admin', '$2y$10$QeJ5mMh7Z0u9vW1xY2z3eO3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8c', 'Admin User', 'admin'
+SELECT 'admin@edukasi.com', 'admin', 'admin123', 'Admin User', 'admin'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@edukasi.com');
 
 INSERT INTO users (email, username, password, name, role)
-SELECT 'demo@edukasi.com', 'demo', '$2y$10$QeJ5mMh7Z0u9vW1xY2z3eO3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8d', 'Demo User', 'user'
+SELECT 'demo@edukasi.com', 'demo', 'demo123', 'Demo User', 'user'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'demo@edukasi.com');
 
 -- Insert data mata kuliah
