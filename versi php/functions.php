@@ -193,7 +193,7 @@ function loginUser($identifier, $password) {
     $stmt->execute([$identifier, $identifier]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user && $password === $user['password']) {
         return ['status' => 'success', 'user' => $user];
     } else {
         return ['status' => 'error'];
