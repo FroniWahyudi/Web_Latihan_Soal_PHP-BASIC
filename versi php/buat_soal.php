@@ -100,7 +100,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Soal Ujian</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="tailwind.min.css" rel="stylesheet">
     <style>
         .format-example {
             background: linear-gradient(135deg, #f8fafc, #e2e8f0);
@@ -144,6 +143,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             100% { transform: scale(1); }
         }
 
+        .error-animation {
+            animation: errorShake 0.3s ease-in-out;
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
         .preview-container {
             max-height: 600px;
             overflow-y: auto;
@@ -169,11 +178,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #2563eb;
         }
 
-        /* Penyesuaian untuk merapikan teks dan memberikan ruang di kanan */
         .option-text {
             display: inline-block;
             max-width: 90%;
             vertical-align: middle;
+        }
+
+        .error-input {
+            border-color: #ef4444 !important;
+            animation: errorShake 0.3s ease-in-out;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
         }
     </style>
 </head>
@@ -252,11 +282,13 @@ A: Surabaya
 B: Jakarta (correct)
 C: Bandung
 D: Medan
+
 Q: Siapa presiden pertama Indonesia?
 A: Soekarno (correct)
 B: Suharto
 C: B.J. Habibie
 D: Megawati
+
 Q: Berapa hasil dari 2 + 2?
 A: 3
 B: 4 (correct)
@@ -298,8 +330,8 @@ D: Transport Communication Protocol
                             <div class="text-sm text-gray-600">
                                 <span id="question-count">0</span> soal terdeteksi
                             </div>
-                            <button onclick="saveQuestions()" id="save-btn" disabled 
-                                    class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            <button onclick="saveQuestions()" id="save-btn" 
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
                                 💾 Simpan Soal
                             </button>
                         </div>
@@ -342,7 +374,7 @@ D: Transport Communication Protocol
     </div>
 
     <!-- Success Modal -->
-    <div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="success-modal">
+    <div class="modal-overlay" id="success-modal">
         <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 fade-in text-center">
             <div class="text-6xl mb-4">🎉</div>
             <h3 class="text-2xl font-bold text-gray-800 mb-2">Berhasil!</h3>
@@ -362,51 +394,122 @@ D: Transport Communication Protocol
         </div>
     </div>
 
+    <!-- Error Modal -->
+    <div class="modal-overlay" id="error-modal">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 fade-in text-center">
+            <div class="text-6xl mb-4 text-red-500">⚠️</div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Terjadi Kesalahan</h3>
+            <p class="text-gray-600 mb-6" id="error-message">Terjadi kesalahan saat menyimpan soal.</p>
+            <button onclick="closeErrorModal()" 
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                Tutup
+            </button>
+        </div>
+    </div>
+
     <script>
         let parsedQuestions = [];
 
         function parseQuestions() {
+            console.log('Parsing questions at:', new Date().toLocaleString('id-ID'));
             const input = document.getElementById('questions-input').value;
             const lines = input.split('\n').map(line => line.trim()).filter(line => line);
             
             parsedQuestions = [];
             let currentQuestion = null;
-            
+            let expectedOption = 0; // Track expected option (0=A, 1=B, 2=C, 3=D)
+            let lineNumber = 0; // Track line number for error reporting
+
             for (let line of lines) {
+                lineNumber++;
                 if (line.startsWith('Q:')) {
-                    if (currentQuestion && currentQuestion.question && currentQuestion.options.length === 4) {
+                    if (currentQuestion && currentQuestion.options.length === 4) {
                         parsedQuestions.push(currentQuestion);
                     }
-                    
                     currentQuestion = {
                         question: line.substring(2).trim(),
                         options: [],
-                        correct: -1
+                        correct: -1,
+                        lineStart: lineNumber
                     };
+                    expectedOption = 0;
                 } else if (line.match(/^[A-D]:/)) {
-                    if (currentQuestion) {
-                        const optionText = line.substring(2).trim();
-                        const isCorrect = optionText.includes('(correct)');
-                        const cleanText = optionText.replace('(correct)', '').trim();
-                        
+                    if (!currentQuestion) {
+                        parsedQuestions.push({
+                            question: '',
+                            options: [],
+                            correct: -1,
+                            errors: [`Baris ${lineNumber}: Tidak ada pertanyaan (Q:) sebelum opsi ${line[0]}:`]
+                        });
+                        continue;
+                    }
+
+                    const prefix = line[0];
+                    const expectedPrefix = String.fromCharCode(65 + expectedOption); // A, B, C, D
+                    if (prefix !== expectedPrefix) {
+                        currentQuestion.errors = currentQuestion.errors || [];
+                        currentQuestion.errors.push(`Baris ${lineNumber}: Diharapkan opsi ${expectedPrefix}:, ditemukan ${prefix}:`);
+                        continue;
+                    }
+
+                    const optionText = line.substring(2).trim();
+                    const isCorrect = optionText.includes('(correct)');
+                    const cleanText = optionText.replace('(correct)', '').trim();
+                    
+                    if (cleanText === '') {
+                        currentQuestion.errors = currentQuestion.errors || [];
+                        currentQuestion.errors.push(`Baris ${lineNumber}: Opsi ${prefix}: kosong`);
+                    } else {
                         currentQuestion.options.push(cleanText);
-                        
-                        if (isCorrect) {
+                    }
+                    
+                    if (isCorrect) {
+                        if (currentQuestion.correct !== -1) {
+                            currentQuestion.errors = currentQuestion.errors || [];
+                            currentQuestion.errors.push(`Baris ${lineNumber}: Hanya satu opsi boleh ditandai (correct)`);
+                        } else {
                             currentQuestion.correct = currentQuestion.options.length - 1;
                         }
+                    }
+                    
+                    expectedOption++;
+                    if (expectedOption > 3 && currentQuestion.options.length === 4) {
+                        if (currentQuestion.correct === -1) {
+                            currentQuestion.errors = currentQuestion.errors || [];
+                            currentQuestion.errors.push(`Soal di baris ${currentQuestion.lineStart}: Tidak ada jawaban benar (correct)`);
+                        }
+                        parsedQuestions.push(currentQuestion);
+                        currentQuestion = null;
+                        expectedOption = 0;
+                    }
+                } else {
+                    if (currentQuestion) {
+                        currentQuestion.errors = currentQuestion.errors || [];
+                        currentQuestion.errors.push(`Baris ${lineNumber}: Format tidak valid, harap gunakan Q: atau A:/B:/C:/D:`);
+                    } else {
+                        parsedQuestions.push({
+                            question: '',
+                            options: [],
+                            correct: -1,
+                            errors: [`Baris ${lineNumber}: Format tidak valid, harap gunakan Q: atau A:/B:/C:/D:`]
+                        });
                     }
                 }
             }
             
-            if (currentQuestion && currentQuestion.question && currentQuestion.options.length === 4) {
+            if (currentQuestion && currentQuestion.options.length > 0) {
+                currentQuestion.errors = currentQuestion.errors || [];
+                currentQuestion.errors.push(`Soal di baris ${currentQuestion.lineStart}: Kurang dari 4 opsi jawaban`);
                 parsedQuestions.push(currentQuestion);
             }
             
+            console.log('Parsed questions:', parsedQuestions);
             updatePreview();
             updateStats();
         }
 
         function updatePreview() {
+            console.log('Updating preview at:', new Date().toLocaleString('id-ID'));
             const preview = document.getElementById('questions-preview');
             
             if (parsedQuestions.length === 0) {
@@ -419,43 +522,70 @@ D: Transport Communication Protocol
                 return;
             }
             
-            // Gunakan elemen dengan innerText untuk menampilkan teks secara normal
-            preview.innerHTML = parsedQuestions.map((q, index) => `
-                <div class="preview-card bg-white rounded-xl p-6 fade-in" data-question-index="${index}">
-                    <div class="mb-4">
-                        <div class="text-sm font-medium text-indigo-600 mb-2">Soal ${index + 1}</div>
-                        <h4 class="font-semibold text-gray-800" id="preview-question-${index}">${q.question}</h4>
-                    </div>
-                    <div class="space-y-2">
-                        ${q.options.map((option, optIndex) => `
-                            <div class="p-3 rounded-lg border ${optIndex === q.correct ? 'correct-answer border-green-500' : 'border-gray-200 bg-gray-50'}" id="preview-option-${index}-${optIndex}">
-                                <span class="font-medium">${String.fromCharCode(65 + optIndex)}.</span> <span class="option-text">${option}</span>
-                                ${optIndex === q.correct ? '<span class="float-right">✓ Benar</span>' : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                    ${q.correct === -1 ? '<div class="mt-3 text-sm text-red-600">⚠️ Jawaban benar belum ditandai</div>' : ''}
-                </div>
-            `).join('');
+            preview.innerHTML = parsedQuestions.map((q, index) => {
+                const errors = q.errors || [];
+                if (q.question.trim() === '' && !errors.some(e => e.includes('Tidak ada pertanyaan'))) {
+                    errors.push(`Soal ${index + 1}: Pertanyaan kosong`);
+                }
+                if (q.options.length !== 4 && !errors.some(e => e.includes('Kurang dari 4 opsi'))) {
+                    errors.push(`Soal ${index + 1}: Harus memiliki tepat 4 pilihan jawaban (ditemukan: ${q.options.length})`);
+                }
+                if (q.options.some(opt => opt.trim() === '') && !errors.some(e => e.includes('Opsi'))) {
+                    errors.push(`Soal ${index + 1}: Ada pilihan jawaban kosong`);
+                }
+                if (q.correct === -1 && !errors.some(e => e.includes('Tidak ada jawaban benar'))) {
+                    errors.push(`Soal ${index + 1}: Jawaban benar belum ditandai`);
+                }
 
-            // Set innerText untuk memastikan teks ditampilkan sebagai teks biasa
+                console.log(`Preview for question ${index + 1}:`, { question: q.question, options: q.options, correct: q.correct, errors });
+                
+                return `
+                    <div class="preview-card bg-white rounded-xl p-6 fade-in" data-question-index="${index}">
+                        <div class="mb-4">
+                            <div class="text-sm font-medium text-indigo-600 mb-2">Soal ${index + 1}</div>
+                            <h4 class="font-semibold text-gray-800" id="preview-question-${index}">${q.question || '[Pertanyaan kosong]'}</h4>
+                        </div>
+                        <div class="space-y-2">
+                            ${q.options.length > 0 ? q.options.map((option, optIndex) => `
+                                <div class="p-3 rounded-lg border ${optIndex === q.correct ? 'correct-answer border-green-500' : 'border-gray-200 bg-gray-50'}" id="preview-option-${index}-${optIndex}">
+                                    <span class="font-medium">${String.fromCharCode(65 + optIndex)}.</span> <span class="option-text">${option || '[Opsi kosong]'}</span>
+                                    ${optIndex === q.correct ? '<span class="float-right">✓ Benar</span>' : ''}
+                                </div>
+                            `).join('') : '<div class="text-red-600">Tidak ada opsi jawaban</div>'}
+                        </div>
+                        ${errors.length > 0 ? `
+                            <div class="mt-3 text-sm text-red-600">
+                                ${errors.map(error => `⚠️ ${error}`).join('<br>')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
             parsedQuestions.forEach((q, index) => {
                 const questionElement = document.getElementById(`preview-question-${index}`);
-                if (questionElement) questionElement.innerText = q.question;
+                if (questionElement) questionElement.innerText = q.question || '[Pertanyaan kosong]';
 
                 q.options.forEach((option, optIndex) => {
                     const optionElement = document.getElementById(`preview-option-${index}-${optIndex}`);
                     if (optionElement) {
                         const textSpan = optionElement.querySelector('.option-text');
-                        if (textSpan) textSpan.innerText = option;
+                        if (textSpan) textSpan.innerText = option || '[Opsi kosong]';
                     }
                 });
             });
         }
 
         function updateStats() {
+            console.log('Updating stats at:', new Date().toLocaleString('id-ID'));
             const questionCount = parsedQuestions.length;
-            const validQuestions = parsedQuestions.filter(q => q.correct !== -1).length;
+            const validQuestions = parsedQuestions.filter(q => 
+                q.correct !== -1 && 
+                q.question.trim() !== '' && 
+                q.options.length === 4 &&
+                !q.options.some(opt => opt.trim() === '') &&
+                !q.errors
+            ).length;
 
             document.getElementById('question-count').textContent = questionCount;
             document.getElementById('total-questions-stat').textContent = questionCount;
@@ -468,31 +598,125 @@ D: Transport Communication Protocol
                 statsCard.style.display = 'none';
             }
 
-            const saveBtn = document.getElementById('save-btn');
-            const subjectName = document.getElementById('subject-input').value.trim();
-            saveBtn.disabled = !(validQuestions > 0 && subjectName);
+            console.log('Stats updated:', { questionCount, validQuestions });
         }
 
         function clearInput() {
+            console.log('Clearing input at:', new Date().toLocaleString('id-ID'));
             document.getElementById('questions-input').value = '';
+            document.getElementById('subject-input').classList.remove('error-input');
+            document.getElementById('questions-input').classList.remove('error-input');
             parseQuestions();
         }
 
-        function saveQuestions() {
-            const subjectName = document.getElementById('subject-input').value.trim();
-            const validQuestions = parsedQuestions.filter(q => q.correct !== -1);
-
-            if (!subjectName) {
-                alert('⚠️ Masukkan nama mata kuliah terlebih dahulu!');
+        function showErrorModal(message, focusElementId = null) {
+            console.log('Attempting to show error modal:', message, { focusElementId });
+            const errorModal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (!errorModal || !errorMessage) {
+                console.error('Error modal or message element not found in DOM');
+                alert('⚠️ ' + message);
                 return;
+            }
+
+            errorMessage.textContent = message;
+            errorModal.classList.remove('hidden');
+            errorModal.classList.add('active');
+            errorModal.classList.add('error-animation');
+            console.log('Error modal displayed:', { message, focusElementId });
+            setTimeout(() => errorModal.classList.remove('error-animation'), 300);
+            
+            if (focusElementId) {
+                const element = document.getElementById(focusElementId);
+                if (element) {
+                    element.classList.add('error-input');
+                    element.focus();
+                    setTimeout(() => element.classList.remove('error-input'), 1000);
+                } else {
+                    console.error('Focus element not found:', focusElementId);
+                }
+            }
+        }
+
+        function closeErrorModal() {
+            console.log('Closing error modal at:', new Date().toLocaleString('id-ID'));
+            const errorModal = document.getElementById('error-modal');
+            if (errorModal) {
+                errorModal.classList.add('hidden');
+                errorModal.classList.remove('active');
+                document.getElementById('subject-input').classList.remove('error-input');
+                document.getElementById('questions-input').classList.remove('error-input');
+            } else {
+                console.error('Error modal not found in DOM');
+            }
+        }
+
+        function saveQuestions() {
+            console.log('Save button clicked at:', new Date().toLocaleString('id-ID'));
+            const subjectName = document.getElementById('subject-input').value.trim();
+            const validQuestions = parsedQuestions.filter(q => 
+                q.correct !== -1 && 
+                q.question.trim() !== '' && 
+                q.options.length === 4 &&
+                !q.options.some(opt => opt.trim() === '') &&
+                !q.errors
+            );
+
+            console.log('Validation started:', { subjectName, totalQuestions: parsedQuestions.length, validQuestions: validQuestions.length });
+
+            // Validasi sisi klien
+            if (!subjectName) {
+                console.log('Validation failed: Nama mata kuliah kosong');
+                showErrorModal('Nama mata kuliah tidak boleh kosong! Silakan masukkan nama mata kuliah.', 'subject-input');
+                return;
+            }
+
+            if (parsedQuestions.length === 0) {
+                console.log('Validation failed: Tidak ada soal yang dimasukkan');
+                showErrorModal('Tidak ada soal yang dimasukkan! Silakan masukkan setidaknya satu soal.', 'questions-input');
+                return;
+            }
+
+            for (let [index, q] of parsedQuestions.entries()) {
+                if (q.errors && q.errors.length > 0) {
+                    console.log(`Validation failed: Format soal tidak valid pada soal ke-${index + 1}`, q.errors);
+                    showErrorModal(`Format soal ke-${index + 1} tidak valid: ${q.errors.join(', ')}`, 'questions-input');
+                    return;
+                }
+                if (q.question.trim() === '') {
+                    console.log(`Validation failed: Pertanyaan kosong pada soal ke-${index + 1}`);
+                    showErrorModal(`Pertanyaan pada soal ke-${index + 1} kosong! Silakan isi pertanyaan.`, 'questions-input');
+                    return;
+                }
+                if (q.options.length !== 4) {
+                    console.log(`Validation failed: Soal ke-${index + 1} memiliki ${q.options.length} pilihan jawaban`);
+                    showErrorModal(`Soal ke-${index + 1} harus memiliki tepat 4 pilihan jawaban (ditemukan: ${q.options.length}).`, 'questions-input');
+                    return;
+                }
+                for (let [optIndex, option] of q.options.entries()) {
+                    if (option.trim() === '') {
+                        console.log(`Validation failed: Pilihan jawaban ${String.fromCharCode(65 + optIndex)} pada soal ke-${index + 1} kosong`);
+                        showErrorModal(`Pilihan jawaban ${String.fromCharCode(65 + optIndex)} pada soal ke-${index + 1} kosong! Silakan isi semua pilihan jawaban.`, 'questions-input');
+                        return;
+                    }
+                }
+                if (q.correct === -1) {
+                    console.log(`Validation failed: Jawaban benar tidak ditandai pada soal ke-${index + 1}`);
+                    showErrorModal(`Jawaban benar pada soal ke-${index + 1} belum ditandai! Gunakan (correct) untuk menandai jawaban benar.`, 'questions-input');
+                    return;
+                }
             }
 
             if (validQuestions.length === 0) {
-                alert('⚠️ Tidak ada soal valid untuk disimpan!');
+                console.log('Validation failed: Tidak ada soal valid');
+                showErrorModal('Tidak ada soal valid untuk disimpan! Pastikan semua soal memiliki pertanyaan, 4 pilihan jawaban, dan jawaban benar yang ditandai.', 'questions-input');
                 return;
             }
 
-            console.log('Sending data:', { subject: subjectName, questions: validQuestions });
+            const dataToSend = { subject: subjectName, questions: validQuestions };
+            console.log('Data to send:', dataToSend);
+
             fetch('buat_soal.php', {
                 method: 'POST',
                 headers: {
@@ -500,19 +724,30 @@ D: Transport Communication Protocol
                 },
                 body: 'subject=' + encodeURIComponent(subjectName) + '&questions=' + encodeURIComponent(JSON.stringify(validQuestions))
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Server response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Server response data:', data);
                 if (data.status === 'success') {
                     document.getElementById('saved-count').textContent = validQuestions.length;
-                    document.getElementById('success-modal').classList.remove('hidden');
-                    document.getElementById('success-modal').classList.add('flex');
+                    const successModal = document.getElementById('success-modal');
+                    if (successModal) {
+                        successModal.classList.remove('hidden');
+                        successModal.classList.add('active');
+                        console.log('Success modal displayed');
+                    } else {
+                        console.error('Success modal not found in DOM');
+                        alert('🎉 ' + data.message);
+                    }
                 } else {
-                    alert('❌ ' + data.message);
+                    showErrorModal(data.message);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('❌ Terjadi kesalahan saat menyimpan soal.');
+                console.error('Fetch error:', error);
+                showErrorModal('Terjadi kesalahan saat menyimpan soal. Silakan coba lagi.');
             });
 
             const saveBtn = document.getElementById('save-btn');
@@ -521,23 +756,51 @@ D: Transport Communication Protocol
         }
 
         function closeSuccessModal() {
-            document.getElementById('success-modal').classList.add('hidden');
-            document.getElementById('success-modal').classList.remove('flex');
+            console.log('Closing success modal at:', new Date().toLocaleString('id-ID'));
+            const successModal = document.getElementById('success-modal');
+            if (successModal) {
+                successModal.classList.add('hidden');
+                successModal.classList.remove('active');
+            } else {
+                console.error('Success modal not found in DOM');
+            }
         }
 
         function addMoreQuestions() {
+            console.log('Adding more questions at:', new Date().toLocaleString('id-ID'));
             closeSuccessModal();
             document.getElementById('questions-input').value = '';
             parseQuestions();
         }
 
-        document.getElementById('subject-input').addEventListener('input', updateStats);
+        document.getElementById('subject-input').addEventListener('input', () => {
+            document.getElementById('subject-input').classList.remove('error-input');
+            updateStats();
+        });
+
+        document.getElementById('questions-input').addEventListener('input', () => {
+            document.getElementById('questions-input').classList.remove('error-input');
+            parseQuestions();
+        });
 
         document.getElementById('success-modal').addEventListener('click', function(e) {
             if (e.target === this) closeSuccessModal();
         });
 
-        parseQuestions();
+        document.getElementById('error-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeErrorModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, checking modals');
+            if (!document.getElementById('error-modal')) {
+                console.error('Error modal not found in DOM on load');
+            }
+            if (!document.getElementById('success-modal')) {
+                console.error('Success modal not found in DOM on load');
+            }
+            parseQuestions();
+        });
     </script>
 </body>
 </html>
