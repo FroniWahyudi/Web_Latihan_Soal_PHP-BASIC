@@ -2,71 +2,79 @@
 require_once 'functions.php'; // Menginclude file functions.php
 
 // Asumsi subject_id dikirim melalui parameter GET
-$subject_id = isset($_GET['subject_id']) ? (int)$_GET['subject_id'] : 1;
+$subject_id = isset($_GET['subject_id']) ? (int)$_GET['subject_id'] : 0;
+if (!$subject_id) {
+    die("Subject ID tidak valid.");
+}
+
+// Mengambil informasi mata kuliah
+$subject = getSubjectById($subject_id);
+if (!$subject) {
+    die("Mata kuliah tidak ditemukan.");
+}
+$subject_name = htmlspecialchars($subject['name']);
+
+// Mengambil semua soal untuk mata kuliah
 $questions = getQuestionsBySubject($subject_id);
+if (empty($questions)) {
+    die("Belum ada soal untuk mata kuliah ini.");
+}
+
 $current_question_index = isset($_GET['index']) ? (int)$_GET['index'] : 0;
 $current_question_index = max(0, min($current_question_index, count($questions) - 1));
 
 // Mengambil data soal berdasarkan index
-$current_question = !empty($questions) ? $questions[$current_question_index] : null;
+$current_question = $questions[$current_question_index];
 
-// Inisialisasi correct_option jika belum ada
-$correct_option = $current_question && isset($current_question['correct_option']) ? $current_question['correct_option'] : 'A';
+// Inisialisasi correct_option
+$correct_option = isset($current_question['correct_option']) ? $current_question['correct_option'] : 'A';
 
 // Proses form submission untuk menyimpan perubahan
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_question'])) {
-    $question_id = $_POST['question_id'];
-    $question_text = $_POST['question'];
-    $option_a = $_POST['option_a'];
-    $option_b = $_POST['option_b'];
-    $option_c = $_POST['option_c'];
-    $option_d = $_POST['option_d'];
-    $selected_correct = $_POST['correct_answer']; // Nilai dari dropdown
+    $question_id = (int)$_POST['question_id'];
+    $question_text = trim($_POST['question']);
+    $option_a = trim($_POST['option_a']);
+    $option_b = trim($_POST['option_b']);
+    $option_c = trim($_POST['option_c']);
+    $option_d = trim($_POST['option_d']);
+    $correct_option = $_POST['correct_answer'];
     $created_by = 1; // Asumsi user ID sementara, sesuaikan dengan sistem autentikasi
 
-    // Menambahkan (correct) ke opsi yang dipilih berdasarkan dropdown
-    $option_a = ($selected_correct === 'A') ? $option_a . ' (correct)' : $option_a;
-    $option_b = ($selected_correct === 'B') ? $option_b . ' (correct)' : $option_b;
-    $option_c = ($selected_correct === 'C') ? $option_c . ' (correct)' : $option_c;
-    $option_d = ($selected_correct === 'D') ? $option_d . ' (correct)' : $option_d;
-
     // Validasi input
-    if (!empty($question_text) && !empty($option_a) && !empty($option_b) && !empty($option_c) && !empty($option_d)) {
-        // Update soal menggunakan fungsi updateQuestion dari functions.php
-        $success = updateQuestion($question_id, $subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $created_by);
+    if (empty($question_text) || empty($option_a) || empty($option_b) || empty($option_c) || empty($option_d)) {
+        $error = "Semua kolom harus diisi.";
+    } elseif (!in_array($correct_option, ['A', 'B', 'C', 'D'])) {
+        $error = "Jawaban yang benar harus A, B, C, atau D.";
+    } else {
+        // Update soal menggunakan fungsi updateQuestion
+        $success = updateQuestion($question_id, $subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_option, $created_by);
         if ($success) {
             header("Location: edit_soal.php?subject_id=$subject_id&index=$current_question_index&saved=1");
             exit;
         } else {
             $error = "Gagal menyimpan perubahan soal.";
         }
-    } else {
-        $error = "Semua kolom harus diisi.";
     }
 }
-
-// Mengambil informasi mata kuliah
-$subject = getSubjectById($subject_id);
-$subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor Soal Ujian</title>
+    <title>Editor Soal Ujian - <?php echo $subject_name; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="font-sans bg-gray-100">
-    <main class="px-4 pb-8">
+    <main class="px-4 pb-8 pt-8">
         <div class="max-w-7xl mx-auto">
             <!-- Page Title and Back Button -->
             <div class="mb-8 flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-800 mb-2">Editor Soal Ujian</h1>
-                    <p class="text-gray-600">Mata Kuliah: <span class="font-semibold text-indigo-600"><?php echo htmlspecialchars($subject_name); ?></span></p>
+                    <p class="text-gray-600">Mata Kuliah: <span class="font-semibold text-indigo-600"><?php echo $subject_name; ?></span></p>
                 </div>
                 <a 
                     href="dashboard.php"
@@ -108,7 +116,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                     <?php endif; ?>
 
                     <form method="POST" class="space-y-6">
-                        <input type="hidden" name="question_id" value="<?php echo $current_question ? htmlspecialchars($current_question['question_id']) : ''; ?>">
+                        <input type="hidden" name="question_id" value="<?php echo htmlspecialchars($current_question['question_id']); ?>">
                         <!-- Question Field -->
                         <div>
                             <label for="question" class="block text-sm font-medium text-gray-700 mb-2">
@@ -120,7 +128,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                                 rows="3" 
                                 class="w-full border-gray-300 rounded-lg p-3 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
                                 placeholder="Masukkan pertanyaan soal..."
-                            ><?php echo $current_question ? htmlspecialchars($current_question['question_text']) : ''; ?></textarea>
+                            ><?php echo htmlspecialchars($current_question['question_text']); ?></textarea>
                         </div>
 
                         <!-- Answer Options -->
@@ -137,7 +145,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                                     id="option_a" 
                                     name="option_a"
                                     class="w-full border-gray-300 rounded-lg bg-gray-50 p-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
-                                    value="<?php echo $current_question ? str_replace(' (correct)', '', htmlspecialchars($current_question['option_a'])) : ''; ?>"
+                                    value="<?php echo htmlspecialchars($current_question['option_a']); ?>"
                                 >
                             </div>
 
@@ -151,7 +159,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                                     id="option_b" 
                                     name="option_b"
                                     class="w-full border-gray-300 rounded-lg bg-gray-50 p-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
-                                    value="<?php echo $current_question ? str_replace(' (correct)', '', htmlspecialchars($current_question['option_b'])) : ''; ?>"
+                                    value="<?php echo htmlspecialchars($current_question['option_b']); ?>"
                                 >
                             </div>
 
@@ -165,7 +173,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                                     id="option_c" 
                                     name="option_c"
                                     class="w-full border-gray-300 rounded-lg bg-gray-50 p-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
-                                    value="<?php echo $current_question ? str_replace(' (correct)', '', htmlspecialchars($current_question['option_c'])) : ''; ?>"
+                                    value="<?php echo htmlspecialchars($current_question['option_c']); ?>"
                                 >
                             </div>
 
@@ -179,7 +187,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                                     id="option_d" 
                                     name="option_d"
                                     class="w-full border-gray-300 rounded-lg bg-gray-50 p-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
-                                    value="<?php echo $current_question ? str_replace(' (correct)', '', htmlspecialchars($current_question['option_d'])) : ''; ?>"
+                                    value="<?php echo htmlspecialchars($current_question['option_d']); ?>"
                                 >
                             </div>
                         </div>
@@ -226,7 +234,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-indigo-600 mb-2">Soal</label>
                         <p id="previewQuestion" class="font-semibold text-gray-800 text-lg leading-relaxed">
-                            <?php echo $current_question ? htmlspecialchars($current_question['question_text']) : 'Masukkan pertanyaan soal...'; ?>
+                            <?php echo htmlspecialchars($current_question['question_text']); ?>
                         </p>
                     </div>
 
@@ -237,7 +245,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                         <!-- Preview Option A -->
                         <div id="previewOptionA" class="<?php echo $correct_option === 'A' ? 'bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-lg border-green-500 border' : 'border-gray-200 bg-gray-50 p-3 rounded-lg border'; ?> transition-all duration-200">
                             <div class="flex items-center justify-between">
-                                <span><strong>A.</strong> <span class="ml-2"><?php echo $current_question ? htmlspecialchars($current_question['option_a']) : 'Pilihan A'; ?></span></span>
+                                <span><strong>A.</strong> <span class="ml-2"><?php echo htmlspecialchars($current_question['option_a']); ?></span></span>
                                 <?php if ($correct_option === 'A'): ?>
                                     <span class="text-sm font-medium">✓ Benar</span>
                                 <?php endif; ?>
@@ -247,7 +255,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                         <!-- Preview Option B -->
                         <div id="previewOptionB" class="<?php echo $correct_option === 'B' ? 'bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-lg border-green-500 border' : 'border-gray-200 bg-gray-50 p-3 rounded-lg border'; ?> transition-all duration-200">
                             <div class="flex items-center justify-between">
-                                <span><strong>B.</strong> <span class="ml-2"><?php echo $current_question ? htmlspecialchars($current_question['option_b']) : 'Pilihan B'; ?></span></span>
+                                <span><strong>B.</strong> <span class="ml-2"><?php echo htmlspecialchars($current_question['option_b']); ?></span></span>
                                 <?php if ($correct_option === 'B'): ?>
                                     <span class="text-sm font-medium">✓ Benar</span>
                                 <?php endif; ?>
@@ -257,7 +265,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                         <!-- Preview Option C -->
                         <div id="previewOptionC" class="<?php echo $correct_option === 'C' ? 'bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-lg border-green-500 border' : 'border-gray-200 bg-gray-50 p-3 rounded-lg border'; ?> transition-all duration-200">
                             <div class="flex items-center justify-between">
-                                <span><strong>C.</strong> <span class="ml-2"><?php echo $current_question ? htmlspecialchars($current_question['option_c']) : 'Pilihan C'; ?></span></span>
+                                <span><strong>C.</strong> <span class="ml-2"><?php echo htmlspecialchars($current_question['option_c']); ?></span></span>
                                 <?php if ($correct_option === 'C'): ?>
                                     <span class="text-sm font-medium">✓ Benar</span>
                                 <?php endif; ?>
@@ -267,7 +275,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                         <!-- Preview Option D -->
                         <div id="previewOptionD" class="<?php echo $correct_option === 'D' ? 'bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-lg border-green-500 border' : 'border-gray-200 bg-gray-50 p-3 rounded-lg border'; ?> transition-all duration-200">
                             <div class="flex items-center justify-between">
-                                <span><strong>D.</strong> <span class="ml-2"><?php echo $current_question ? htmlspecialchars($current_question['option_d']) : 'Pilihan D'; ?></span></span>
+                                <span><strong>D.</strong> <span class="ml-2"><?php echo htmlspecialchars($current_question['option_d']); ?></span></span>
                                 <?php if ($correct_option === 'D'): ?>
                                     <span class="text-sm font-medium">✓ Benar</span>
                                 <?php endif; ?>
@@ -294,7 +302,7 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
         </div>
     </main>
 
-    <!-- Success Modal (Hidden initially) -->
+    <!-- Success Modal -->
     <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 <?php echo isset($_GET['saved']) ? '' : 'hidden'; ?>">
         <div class="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center transform transition-all duration-300">
             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -345,6 +353,14 @@ $subject_name = $subject ? $subject['name'] : 'Mata Kuliah Tidak Ditemukan';
                 }
             });
         }
+
+        // Update preview on input change
+        document.getElementById('question').addEventListener('input', updatePreview);
+        document.getElementById('option_a').addEventListener('input', updatePreview);
+        document.getElementById('option_b').addEventListener('input', updatePreview);
+        document.getElementById('option_c').addEventListener('input', updatePreview);
+        document.getElementById('option_d').addEventListener('input', updatePreview);
+        document.getElementById('correct_answer').addEventListener('change', updatePreview);
 
         document.addEventListener('DOMContentLoaded', function() {
             updatePreview();

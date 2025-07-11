@@ -20,14 +20,13 @@ if (empty($questions)) {
     die("Belum ada soal untuk mata kuliah ini.");
 }
 
-// Konversi data soal ke format yang sesuai dengan JavaScript, hapus (correct) tanpa encoding
+// Konversi data soal ke format yang sesuai dengan JavaScript
 $quizData = array_map(function($q) {
-    // Hapus (correct) dari setiap opsi tanpa encoding
     $options = [
-        str_replace('(correct)', '', $q['option_a']),
-        str_replace('(correct)', '', $q['option_b']),
-        str_replace('(correct)', '', $q['option_c']),
-        str_replace('(correct)', '', $q['option_d'])
+        $q['option_a'],
+        $q['option_b'],
+        $q['option_c'],
+        $q['option_d']
     ];
     $correct = array_search($q['correct_option'], ['A', 'B', 'C', 'D']);
     return [
@@ -45,7 +44,6 @@ $quizData = array_map(function($q) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuis - <?php echo $subject['name']; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -61,11 +59,11 @@ $quizData = array_map(function($q) {
         }
         
         .pulse-green {
-            animation: pulseGreen 0.6s ease-in-out;
+            animation: pulseGreen 1s ease-in-out !important;
         }
         
         .pulse-red {
-            animation: pulseRed 0.6s ease-in-out;
+            animation: pulseRed 0.6s ease-in-out !important;
         }
         
         @keyframes fadeIn {
@@ -81,13 +79,13 @@ $quizData = array_map(function($q) {
         
         @keyframes pulseGreen {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); background-color: #10b981; }
+            50% { transform: scale(1.05); background-color: #10b981 !important; }
             100% { transform: scale(1); }
         }
         
         @keyframes pulseRed {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); background-color: #ef4444; }
+            50% { transform: scale(1.05); background-color: #ef4444 !important; }
             100% { transform: scale(1); }
         }
         
@@ -117,7 +115,6 @@ $quizData = array_map(function($q) {
             background-color: rgba(255, 255, 255, 0.95);
         }
 
-        /* Dropdown styles */
         .dropdown-menu {
             max-height: 200px;
             overflow-y: auto;
@@ -324,7 +321,7 @@ $quizData = array_map(function($q) {
             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
-            <span class="font-medium">Jawaban Salah!</span>
+            <span class="font-medium" id="notificationText">Jawaban Salah!</span>
         </div>
     </div>
 
@@ -349,7 +346,6 @@ $quizData = array_map(function($q) {
         function toggleDropdown(dropdownId) {
             const dropdown = document.getElementById(dropdownId);
             dropdown.classList.toggle('hidden');
-            // Close other dropdown if open
             const otherDropdownId = dropdownId === 'desktopDropdown' ? 'mobileDropdown' : 'desktopDropdown';
             const otherDropdown = document.getElementById(otherDropdownId);
             if (!otherDropdown.classList.contains('hidden')) {
@@ -388,7 +384,8 @@ $quizData = array_map(function($q) {
                 question = quizData[currentQuestion];
             }
 
-            // Gunakan innerText untuk menampilkan teks apa adanya
+            console.log('Question:', question); // Debugging
+
             document.getElementById('questionText').innerText = question.question;
             
             const options = document.querySelectorAll('.option-button');
@@ -422,13 +419,12 @@ $quizData = array_map(function($q) {
                 question = quizData[currentQuestion];
             }
             
-            const options = document.querySelectorAll('.option-button');
+            console.log('Selected:', selectedIndex, 'Correct:', question.correct); // Debugging
             
-            // Disable all buttons
+            const options = document.querySelectorAll('.option-button');
             options.forEach(option => option.disabled = true);
 
             if (selectedIndex === question.correct) {
-                // Correct answer
                 const correctOption = options[selectedIndex];
                 correctOption.classList.add('bg-green-500', 'text-white', 'border-green-500', 'pulse-green');
                 const letterSpan = correctOption.querySelector('span:first-child');
@@ -438,7 +434,6 @@ $quizData = array_map(function($q) {
                     score++;
                 }
                 
-                // Move to next question after delay
                 setTimeout(() => {
                     if (isRetryMode) {
                         retryIndex++;
@@ -448,7 +443,6 @@ $quizData = array_map(function($q) {
                     loadQuestion();
                 }, 1500);
             } else {
-                // Wrong answer
                 const wrongOption = options[selectedIndex];
                 const correctOption = options[question.correct];
                 
@@ -461,15 +455,12 @@ $quizData = array_map(function($q) {
                 wrongLetterSpan.className = 'w-8 h-8 bg-white text-red-600 rounded-full flex items-center justify-center font-semibold mr-4';
                 correctLetterSpan.className = 'w-8 h-8 bg-white text-green-600 rounded-full flex items-center justify-center font-semibold mr-4';
                 
-                // Add to wrong answers if not in retry mode
                 if (!isRetryMode) {
                     wrongAnswers.push(currentQuestion);
                 }
                 
-                // Show notification
-                showNotification();
+                showNotification(question);
                 
-                // Move to next question after longer delay
                 setTimeout(() => {
                     if (isRetryMode) {
                         retryIndex++;
@@ -477,17 +468,25 @@ $quizData = array_map(function($q) {
                         currentQuestion++;
                     }
                     loadQuestion();
-                }, 2500);
+                }, 3000);
             }
         }
 
-        function showNotification() {
+        function showNotification(question) {
             const notification = document.getElementById('notification');
+            notification.innerHTML = `
+                <div class="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <span class="font-medium">Jawaban Salah!</span>
+                </div>
+            `;
             notification.classList.remove('hidden');
             
             setTimeout(() => {
                 notification.classList.add('hidden');
-            }, 2000);
+            }, 3000);
         }
 
         function showResults() {
@@ -502,12 +501,10 @@ $quizData = array_map(function($q) {
             document.getElementById('wrongCount').textContent = wrongAnswersCount;
             document.getElementById('scorePercentage').textContent = percentage + '%';
             
-            // Hide retry button if no wrong answers
             if (wrongAnswers.length === 0) {
                 document.getElementById('retryButton').style.display = 'none';
             }
             
-            // Update progress to 100%
             document.getElementById('progressBar').style.width = '100%';
             document.getElementById('questionCounter').textContent = `Selesai - ${score}/${quizData.length} Benar`;
         }
@@ -528,7 +525,6 @@ $quizData = array_map(function($q) {
             document.getElementById('completeCard').classList.remove('hidden');
             document.getElementById('finalScore').textContent = `Skor Final: ${score}/${quizData.length}`;
             
-            // Update progress to 100%
             document.getElementById('progressBar').style.width = '100%';
             document.getElementById('questionCounter').textContent = `Sempurna! ${score}/${quizData.length}`;
         }

@@ -41,20 +41,13 @@ CREATE TABLE questions (
     option_b VARCHAR(255) NOT NULL,
     option_c VARCHAR(255) NOT NULL,
     option_d VARCHAR(255) NOT NULL,
-    correct_option CHAR(1) GENERATED ALWAYS AS (
-        CASE 
-            WHEN option_a LIKE '%(correct)%' THEN 'A'
-            WHEN option_b LIKE '%(correct)%' THEN 'B'
-            WHEN option_c LIKE '%(correct)%' THEN 'C'
-            WHEN option_d LIKE '%(correct)%' THEN 'D'
-            ELSE NULL
-        END
-    ) STORED,
+    correct_option CHAR(1) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_by INT,
     FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE SET NULL,
-    INDEX idx_subject_id (subject_id)
+    INDEX idx_subject_id (subject_id),
+    CONSTRAINT chk_correct_option CHECK (correct_option IN ('A', 'B', 'C', 'D'))
 );
 
 -- Tabel untuk hasil kuis
@@ -88,11 +81,11 @@ CREATE TABLE quiz_attempts (
 
 -- Insert data pengguna (dengan hash password yang valid)
 INSERT INTO users (email, username, password, name, role)
-SELECT 'admin@edukasi.com', 'admin', 'admin123', 'Admin User', 'admin'
+SELECT 'admin@edukasi.com', 'admin', '$2y$10$2Xz6z3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y', 'Admin User', 'admin'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@edukasi.com');
 
 INSERT INTO users (email, username, password, name, role)
-SELECT 'demo@edukasi.com', 'demo', 'demo123', 'Demo User', 'user'
+SELECT 'demo@edukasi.com', 'demo', '$2y$10$3Xz6z3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y3Y', 'Demo User', 'user'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'demo@edukasi.com');
 
 -- Insert data mata kuliah
@@ -117,66 +110,71 @@ SELECT 'Jaringan Komputer', 1
 WHERE NOT EXISTS (SELECT 1 FROM subjects WHERE name = 'Jaringan Komputer');
 
 -- Insert data soal
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Matematika Diskrit'),
     'Dalam Matematika Diskrit, apa itu himpunan?',
     'Kumpulan bilangan bulat',
-    'Kumpulan objek tertentu yang terdefinisi dengan jelas (correct)',
+    'Kumpulan objek tertentu yang terdefinisi dengan jelas',
     'Kumpulan fungsi matematika',
     'Kumpulan variabel acak',
+    'B',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Matematika Diskrit, apa itu himpunan?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Pemrograman Web'),
     'Dalam Pemrograman Web, tag HTML apa yang digunakan untuk membuat tautan?',
     '<link>',
-    '<a> (correct)',
+    '<a>',
     '<href>',
     '<url>',
+    'B',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Pemrograman Web, tag HTML apa yang digunakan untuk membuat tautan?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Basis Data'),
     'Dalam Basis Data, apa fungsi utama perintah SQL SELECT?',
     'Menghapus data',
     'Menyisipkan data',
-    'Mengambil data (correct)',
+    'Mengambil data',
     'Memperbarui data',
+    'C',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Basis Data, apa fungsi utama perintah SQL SELECT?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Algoritma'),
     'Dalam Algoritma, apa itu Big-O notation?',
     'Cara mengukur efisiensi memori',
-    'Cara mengukur kompleksitas waktu atau ruang suatu algoritma (correct)',
+    'Cara mengukur kompleksitas waktu atau ruang suatu algoritma',
     'Teknik pengurutan data',
     'Struktur data pohon',
+    'B',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Algoritma, apa itu Big-O notation?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Jaringan Komputer'),
     'Dalam Jaringan Komputer, apa kepanjangan dari TCP?',
-    'Transmission Control Protocol (correct)',
+    'Transmission Control Protocol',
     'Transfer Control Process',
     'Terminal Control Protocol',
     'Transport Communication Protocol',
+    'A',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Jaringan Komputer, apa kepanjangan dari TCP?'

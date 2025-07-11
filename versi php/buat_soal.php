@@ -70,15 +70,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $correctOption = ['A', 'B', 'C', 'D'][$newCorrectIndex];
 
         // Simpan soal dengan opsi yang sudah diacak
-        $result = createQuestion(
-            $subjectId,
-            $questionText,
-            $shuffledOptions[0] . ($correctOption === 'A' ? ' (correct)' : ''),
-            $shuffledOptions[1] . ($correctOption === 'B' ? ' (correct)' : ''),
-            $shuffledOptions[2] . ($correctOption === 'C' ? ' (correct)' : ''),
-            $shuffledOptions[3] . ($correctOption === 'D' ? ' (correct)' : ''),
-            1
-        );
+      $result = createQuestion(
+    $subjectId,
+    $questionText,
+    $shuffledOptions[0], // Opsi A tanpa (correct)
+    $shuffledOptions[1], // Opsi B tanpa (correct)
+    $shuffledOptions[2], // Opsi C tanpa (correct)
+    $shuffledOptions[3], // Opsi D tanpa (correct)
+    $correctOption,      // Nilai correct_option ('A', 'B', 'C', atau 'D')
+    1                   // created_by, asumsi user ID sementara
+);
 
         if ($result) {
             $savedCount++;
