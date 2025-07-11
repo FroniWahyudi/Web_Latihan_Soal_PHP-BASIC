@@ -367,7 +367,7 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
     }
 
     function logout() {
-        window.location.href = 'logout.php';
+        window.location.href = 'login.php';
     }
 
     // Event listeners
