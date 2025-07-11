@@ -1,82 +1,3 @@
-<?php
-include 'functions.php';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $subjectName = $_POST['subject'] ?? '';
-    $questionsJson = $_POST['questions'] ?? '';
-    
-    // Validasi input
-    if (empty($subjectName)) {
-        echo json_encode(['status' => 'error', 'message' => 'Nama mata kuliah tidak boleh kosong']);
-        exit;
-    }
-
-    $questions = json_decode($questionsJson, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        echo json_encode(['status' => 'error', 'message' => 'Gagal memproses data soal: ' . json_last_error_msg()]);
-        exit;
-    }
-
-    if (empty($questions)) {
-        echo json_encode(['status' => 'error', 'message' => 'Tidak ada soal yang dikirim']);
-        exit;
-    }
-
-    // Cari atau buat subject
-    $subjectId = null;
-    $subjects = getAllSubjects();
-    foreach ($subjects as $subject) {
-        if ($subject['name'] === $subjectName) {
-            $subjectId = $subject['subject_id'];
-            break;
-        }
-    }
-    if (!$subjectId) {
-        if (!createSubject(htmlspecialchars($subjectName, ENT_QUOTES, 'UTF-8'), 1)) {
-            $errorInfo = $pdo->errorInfo();
-            echo json_encode(['status' => 'error', 'message' => 'Gagal membuat mata kuliah: ' . $errorInfo[2]]);
-            exit;
-        }
-        $subjectId = $pdo->lastInsertId();
-    }
-
-    // Simpan soal
-    $savedCount = 0;
-    foreach ($questions as $question) {
-        if (!isset($question['question']) || !isset($question['options']) || !isset($question['correct']) || count($question['options']) !== 4) {
-            continue; // Lewati soal yang tidak valid
-        }
-
-        // Ac répertoire
-
-        // Gunakan indeks jawaban benar yang baru
-        $correctOption = ['A', 'B', 'C', 'D'][$newCorrectIndex];
-
-        // Simpan soal dengan opsi yang sudah diacak
-      $result = createQuestion(
-    $subjectId,
-    $questionText,
-    $shuffledOptions[0], // Opsi A tanpa (correct)
-    $shuffledOptions[1], // Opsi B tanpa (correct)
-    $shuffledOptions[2], // Opsi C tanpa (correct)
-    $shuffledOptions[3], // Opsi D tanpa (correct)
-    $correctOption,      // Nilai correct_option ('A', 'B', 'C', atau 'D')
-    1                   // created_by, asumsi user ID sementara
-);
-
-        if ($result) {
-            $savedCount++;
-        } else {
-            $errorInfo = $pdo->errorInfo();
-            error_log("Failed to save question: " . $errorInfo[2]);
-        }
-    }
-
-    echo json_encode(['status' => 'success', 'message' => "$savedCount soal berhasil disimpan"]);
-    exit;
-}
-?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -227,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="text-gray-600">B: [Pilihan B]</div>
                             <div class="text-gray-600">C: [Pilihan C] (correct)</div>
                             <div class="text-gray-600">D: [Pilihan D]</div>
+                            <div class="text-gray-600">E: [Pilihan E, opsional]</div>
                         </div>
                     </div>
                     
@@ -240,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <ul class="mt-1 space-y-1">
                                     <li>• Tambahkan <code class="bg-yellow-100 px-1 rounded">(correct)</code> setelah jawaban yang benar</li>
                                     <li>• Pisahkan setiap soal dengan baris kosong</li>
-                                    <li>• Gunakan Q: untuk pertanyaan, A:B:C:D: untuk pilihan</li>
+                                    <li>• Gunakan Q: untuk pertanyaan, A:B:C:D:E: untuk pilihan (E opsional)</li>
                                     <li>• Urutan opsi akan diacak saat disimpan</li>
                                     <li>• Karakter khusus seperti <, >, & akan ditangani dengan aman</li>
                                 </ul>
@@ -277,6 +199,7 @@ A: Soekarno (correct)
 B: Suharto
 C: B.J. Habibie
 D: Megawati
+E: Abdurrahman Wahid
 
 Q: Berapa hasil dari 2 + 2?
 A: 3
@@ -305,6 +228,7 @@ D: Memperbarui data
 
 Q: Dalam Algoritma, apa itu Big-O notation?
 A: Cara mengukur efisiensi memori
+
 B: Cara mengukur kompleksitas waktu atau ruang suatu algoritma (correct)
 C: Teknik pengurutan data
 D: Struktur data pohon
@@ -314,6 +238,7 @@ A: Transmission Control Protocol (correct)
 B: Transfer Control Process
 C: Terminal Control Protocol
 D: Transport Communication Protocol
+E: Traffic Control Protocol
 </textarea>
                         <div class="flex justify-between items-center mt-4">
                             <div class="text-sm text-gray-600">
@@ -417,13 +342,13 @@ D: Transport Communication Protocol
                         while (currentQuestion.options.length < 4) {
                             currentQuestion.options.push(`[Opsi ${String.fromCharCode(65 + currentQuestion.options.length)} kosong]`);
                         }
-                        if (currentQuestion.correct === -1) {
-                            currentQuestion.options[0] += ' (correct)';
-                            currentQuestion.correct = 0;
-                        }
                         fixedLines.push(`Q: ${currentQuestion.question}`);
                         currentQuestion.options.forEach((option, index) => {
-                            fixedLines.push(`${String.fromCharCode(65 + index)}: ${option}`);
+                            let optionText = option;
+                            if (index === currentQuestion.correct) {
+                                optionText += ' (correct)';
+                            }
+                            fixedLines.push(`${String.fromCharCode(65 + index)}: ${optionText}`);
                         });
                         fixedLines.push('');
                     }
@@ -433,7 +358,7 @@ D: Transport Communication Protocol
                         correct: -1
                     };
                     expectedOption = 0;
-                } else if (line.match(/^[A-D]:/i)) {
+                } else if (line.match(/^[A-E]:/i)) {
                     if (!currentQuestion) {
                         currentQuestion = { question: '[Pertanyaan kosong]', options: [], correct: -1 };
                     }
@@ -460,13 +385,13 @@ D: Transport Communication Protocol
                 while (currentQuestion.options.length < 4) {
                     currentQuestion.options.push(`[Opsi ${String.fromCharCode(65 + currentQuestion.options.length)} kosong]`);
                 }
-                if (currentQuestion.correct === -1) {
-                    currentQuestion.options[0] += ' (correct)';
-                    currentQuestion.correct = 0;
-                }
                 fixedLines.push(`Q: ${currentQuestion.question}`);
                 currentQuestion.options.forEach((option, index) => {
-                    fixedLines.push(`${String.fromCharCode(65 + index)}: ${option}`);
+                    let optionText = option;
+                    if (index === currentQuestion.correct) {
+                        optionText += ' (correct)';
+                    }
+                    fixedLines.push(`${String.fromCharCode(65 + index)}: ${optionText}`);
                 });
                 fixedLines.push('');
             }
@@ -483,13 +408,13 @@ D: Transport Communication Protocol
             
             parsedQuestions = [];
             let currentQuestion = null;
-            let expectedOption = 0; // Track expected option (0=A, 1=B, 2=C, 3=D)
+            let expectedOption = 0; // Track expected option (0=A, 1=B, 2=C, 3=D, 4=E)
             let lineNumber = 0; // Track line number for error reporting
 
             for (let line of lines) {
                 lineNumber++;
                 if (line.startsWith('Q:')) {
-                    if (currentQuestion && currentQuestion.options.length === 4) {
+                    if (currentQuestion && currentQuestion.options.length >= 4) {
                         parsedQuestions.push(currentQuestion);
                     }
                     currentQuestion = {
@@ -499,7 +424,7 @@ D: Transport Communication Protocol
                         lineStart: lineNumber
                     };
                     expectedOption = 0;
-                } else if (line.match(/^[A-D]:/)) {
+                } else if (line.match(/^[A-E]:/)) {
                     if (!currentQuestion) {
                         parsedQuestions.push({
                             question: '',
@@ -510,8 +435,8 @@ D: Transport Communication Protocol
                         continue;
                     }
 
-                    const prefix = line[0];
-                    const expectedPrefix = String.fromCharCode(65 + expectedOption); // A, B, C, D
+                    const prefix = line[0].toUpperCase();
+                    const expectedPrefix = String.fromCharCode(65 + expectedOption); // A, B, C, D, E
                     if (prefix !== expectedPrefix) {
                         currentQuestion.errors = currentQuestion.errors || [];
                         currentQuestion.errors.push(`Baris ${lineNumber}: Diharapkan opsi ${expectedPrefix}:, ditemukan ${prefix}:`);
@@ -539,7 +464,7 @@ D: Transport Communication Protocol
                     }
                     
                     expectedOption++;
-                    if (expectedOption > 3 && currentQuestion.options.length === 4) {
+                    if (expectedOption > 4 && currentQuestion.options.length >= 4) {
                         if (currentQuestion.correct === -1) {
                             currentQuestion.errors = currentQuestion.errors || [];
                             currentQuestion.errors.push(`Soal di baris ${currentQuestion.lineStart}: Tidak ada jawaban benar (correct)`);
@@ -551,13 +476,13 @@ D: Transport Communication Protocol
                 } else {
                     if (currentQuestion) {
                         currentQuestion.errors = currentQuestion.errors || [];
-                        currentQuestion.errors.push(`Baris ${lineNumber}: Format tidak valid, harap gunakan Q: atau A:/B:/C:/D:`);
+                        currentQuestion.errors.push(`Baris ${lineNumber}: Format tidak valid, harap gunakan Q: atau A:/B:/C:/D:/E:`);
                     } else {
                         parsedQuestions.push({
                             question: '',
                             options: [],
                             correct: -1,
-                            errors: [`Baris ${lineNumber}: Format tidak valid, harap gunakan Q: atau A:/B:/C:/D:`]
+                            errors: [`Baris ${lineNumber}: Format tidak valid, harap gunakan Q: atau A:/B:/C:/D:/E:`]
                         });
                     }
                 }
@@ -593,8 +518,11 @@ D: Transport Communication Protocol
                 if (q.question.trim() === '' && !errors.some(e => e.includes('Tidak ada pertanyaan'))) {
                     errors.push(`Soal ${index + 1}: Pertanyaan kosong`);
                 }
-                if (q.options.length !== 4 && !errors.some(e => e.includes('Kurang dari 4 opsi'))) {
-                    errors.push(`Soal ${index + 1}: Harus memiliki tepat 4 pilihan jawaban (ditemukan: ${q.options.length})`);
+                if (q.options.length < 4 && !errors.some(e => e.includes('Kurang dari 4 opsi'))) {
+                    errors.push(`Soal ${index + 1}: Harus memiliki minimal 4 pilihan jawaban (ditemukan: ${q.options.length})`);
+                }
+                if (q.options.length > 5 && !errors.some(e => e.includes('Terlalu banyak opsi'))) {
+                    errors.push(`Soal ${index + 1}: Maksimal 5 pilihan jawaban diperbolehkan (ditemukan: ${q.options.length})`);
                 }
                 if (q.options.some(opt => opt.trim() === '') && !errors.some(e => e.includes('Opsi'))) {
                     errors.push(`Soal ${index + 1}: Ada pilihan jawaban kosong`);
@@ -648,7 +576,8 @@ D: Transport Communication Protocol
             const validQuestions = parsedQuestions.filter(q => 
                 q.correct !== -1 && 
                 q.question.trim() !== '' && 
-                q.options.length === 4 &&
+                q.options.length >= 4 &&
+                q.options.length <= 5 &&
                 !q.options.some(opt => opt.trim() === '') &&
                 !q.errors
             ).length;
@@ -724,7 +653,8 @@ D: Transport Communication Protocol
             const validQuestions = parsedQuestions.filter(q => 
                 q.correct !== -1 && 
                 q.question.trim() !== '' && 
-                q.options.length === 4 &&
+                q.options.length >= 4 &&
+                q.options.length <= 5 &&
                 !q.options.some(opt => opt.trim() === '') &&
                 !q.errors
             );
@@ -755,9 +685,14 @@ D: Transport Communication Protocol
                     showErrorModal(`Pertanyaan pada soal ke-${index + 1} kosong! Silakan isi pertanyaan.`, 'questions-input');
                     return;
                 }
-                if (q.options.length !== 4) {
+                if (q.options.length < 4) {
                     console.log(`Validation failed: Soal ke-${index + 1} memiliki ${q.options.length} pilihan jawaban`);
-                    showErrorModal(`Soal ke-${index + 1} harus memiliki tepat 4 pilihan jawaban (ditemukan: ${q.options.length}).`, 'questions-input');
+                    showErrorModal(`Soal ke-${index + 1} harus memiliki minimal 4 pilihan jawaban (ditemukan: ${q.options.length}).`, 'questions-input');
+                    return;
+                }
+                if (q.options.length > 5) {
+                    console.log(`Validation failed: Soal ke-${index + 1} memiliki terlalu banyak pilihan jawaban`);
+                    showErrorModal(`Soal ke-${index + 1} hanya boleh memiliki maksimal 5 pilihan jawaban (ditemukan: ${q.options.length}).`, 'questions-input');
                     return;
                 }
                 for (let [optIndex, option] of q.options.entries()) {
@@ -772,12 +707,6 @@ D: Transport Communication Protocol
                     showErrorModal(`Jawaban benar pada soal ke-${index + 1} belum ditandai! Gunakan (correct) untuk menandai jawaban benar.`, 'questions-input');
                     return;
                 }
-            }
-
-            if (validQuestions.length === 0) {
-                console.log('Validation failed: Tidak ada soal valid');
-                showErrorModal('Tidak ada soal valid untuk disimpan! Pastikan semua soal memiliki pertanyaan, 4 pilihan jawaban, dan jawaban benar yang ditandai.', 'questions-input');
-                return;
             }
 
             const dataToSend = { subject: subjectName, questions: validQuestions };

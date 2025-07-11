@@ -32,7 +32,7 @@ CREATE TABLE subjects (
     INDEX idx_name (name)
 );
 
--- Tabel untuk soal
+-- Tabel untuk soal (dengan opsi E opsional)
 CREATE TABLE questions (
     question_id INT PRIMARY KEY AUTO_INCREMENT,
     subject_id INT,
@@ -41,13 +41,14 @@ CREATE TABLE questions (
     option_b VARCHAR(255) NOT NULL,
     option_c VARCHAR(255) NOT NULL,
     option_d VARCHAR(255) NOT NULL,
+    option_e VARCHAR(255), -- Opsional, boleh NULL
     correct_option CHAR(1) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_by INT,
     FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE SET NULL,
     INDEX idx_subject_id (subject_id),
-    CONSTRAINT chk_correct_option CHECK (correct_option IN ('A', 'B', 'C', 'D'))
+    CONSTRAINT chk_correct_option CHECK (correct_option IN ('A', 'B', 'C', 'D', 'E'))
 );
 
 -- Tabel untuk hasil kuis
@@ -109,8 +110,8 @@ INSERT INTO subjects (name, created_by)
 SELECT 'Jaringan Komputer', 1
 WHERE NOT EXISTS (SELECT 1 FROM subjects WHERE name = 'Jaringan Komputer');
 
--- Insert data soal
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
+-- Insert data soal (dengan opsi E opsional)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Matematika Diskrit'),
     'Dalam Matematika Diskrit, apa itu himpunan?',
@@ -118,13 +119,14 @@ SELECT
     'Kumpulan objek tertentu yang terdefinisi dengan jelas',
     'Kumpulan fungsi matematika',
     'Kumpulan variabel acak',
+    NULL, -- Tidak ada opsi E
     'B',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Matematika Diskrit, apa itu himpunan?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Pemrograman Web'),
     'Dalam Pemrograman Web, tag HTML apa yang digunakan untuk membuat tautan?',
@@ -132,13 +134,14 @@ SELECT
     '<a>',
     '<href>',
     '<url>',
+    NULL, -- Tidak ada opsi E
     'B',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Pemrograman Web, tag HTML apa yang digunakan untuk membuat tautan?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Basis Data'),
     'Dalam Basis Data, apa fungsi utama perintah SQL SELECT?',
@@ -146,13 +149,14 @@ SELECT
     'Menyisipkan data',
     'Mengambil data',
     'Memperbarui data',
+    NULL, -- Tidak ada opsi E
     'C',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Basis Data, apa fungsi utama perintah SQL SELECT?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Algoritma'),
     'Dalam Algoritma, apa itu Big-O notation?',
@@ -160,13 +164,14 @@ SELECT
     'Cara mengukur kompleksitas waktu atau ruang suatu algoritma',
     'Teknik pengurutan data',
     'Struktur data pohon',
+    NULL, -- Tidak ada opsi E
     'B',
     1
 WHERE NOT EXISTS (
     SELECT 1 FROM questions WHERE question_text = 'Dalam Algoritma, apa itu Big-O notation?'
 );
 
-INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by)
+INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, created_by)
 SELECT 
     (SELECT subject_id FROM subjects WHERE name = 'Jaringan Komputer'),
     'Dalam Jaringan Komputer, apa kepanjangan dari TCP?',
@@ -174,6 +179,7 @@ SELECT
     'Transfer Control Process',
     'Terminal Control Protocol',
     'Transport Communication Protocol',
+    'Traffic Control Protocol', -- Contoh dengan opsi E
     'A',
     1
 WHERE NOT EXISTS (
