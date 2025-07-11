@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if (!$subjectId) {
-        if (!createSubject($subjectName, 1)) {
+        if (!createSubject(htmlspecialchars($subjectName, ENT_QUOTES, 'UTF-8'), 1)) {
             $errorInfo = $pdo->errorInfo();
             echo json_encode(['status' => 'error', 'message' => 'Gagal membuat mata kuliah: ' . $errorInfo[2]]);
             exit;
@@ -47,16 +47,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             continue; // Lewati soal yang tidak valid
         }
 
+        // Acak urutan opsi tanpa encoding
+        $options = $question['options'];
+        $questionText = $question['question'];
         $correctIndex = $question['correct'];
-        $correctOption = ['A', 'B', 'C', 'D'][$correctIndex];
+        
+        // Buat array indeks untuk acak
+        $indices = [0, 1, 2, 3];
+        shuffle($indices);
+        
+        // Buat array opsi baru berdasarkan indeks yang sudah diacak
+        $shuffledOptions = [];
+        $newCorrectIndex = -1;
+        foreach ($indices as $newIndex => $oldIndex) {
+            $shuffledOptions[$newIndex] = $options[$oldIndex];
+            if ($oldIndex === $correctIndex) {
+                $newCorrectIndex = $newIndex;
+            }
+        }
 
+        // Gunakan indeks jawaban benar yang baru
+        $correctOption = ['A', 'B', 'C', 'D'][$newCorrectIndex];
+
+        // Simpan soal dengan opsi yang sudah diacak
         $result = createQuestion(
             $subjectId,
-            $question['question'],
-            $question['options'][0] . ($correctOption === 'A' ? ' (correct)' : ''),
-            $question['options'][1] . ($correctOption === 'B' ? ' (correct)' : ''),
-            $question['options'][2] . ($correctOption === 'C' ? ' (correct)' : ''),
-            $question['options'][3] . ($correctOption === 'D' ? ' (correct)' : ''),
+            $questionText,
+            $shuffledOptions[0] . ($correctOption === 'A' ? ' (correct)' : ''),
+            $shuffledOptions[1] . ($correctOption === 'B' ? ' (correct)' : ''),
+            $shuffledOptions[2] . ($correctOption === 'C' ? ' (correct)' : ''),
+            $shuffledOptions[3] . ($correctOption === 'D' ? ' (correct)' : ''),
             1
         );
 
@@ -147,6 +167,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .preview-container::-webkit-scrollbar-thumb:hover {
             background: #2563eb;
         }
+
+        /* Penyesuaian untuk merapikan teks dan memberikan ruang di kanan */
+        .option-text {
+            display: inline-block;
+            max-width: 90%;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -191,14 +218,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                         <div class="flex items-start space-x-2">
                             <svg class="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
-</svg>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
                             <div class="text-sm text-yellow-800">
                                 <p class="font-medium">Penting:</p>
                                 <ul class="mt-1 space-y-1">
                                     <li>• Tambahkan <code class="bg-yellow-100 px-1 rounded">(correct)</code> setelah jawaban yang benar</li>
                                     <li>• Pisahkan setiap soal dengan baris kosong</li>
                                     <li>• Gunakan Q: untuk pertanyaan, A:B:C:D: untuk pilihan</li>
+                                    <li>• Urutan opsi akan diacak saat disimpan</li>
+                                    <li>• Karakter khusus seperti <, >, & akan ditangani dengan aman</li>
                                 </ul>
                             </div>
                         </div>
@@ -389,16 +418,17 @@ D: Transport Communication Protocol
                 return;
             }
             
+            // Gunakan elemen dengan innerText untuk menampilkan teks secara normal
             preview.innerHTML = parsedQuestions.map((q, index) => `
-                <div class="preview-card bg-white rounded-xl p-6 fade-in">
+                <div class="preview-card bg-white rounded-xl p-6 fade-in" data-question-index="${index}">
                     <div class="mb-4">
                         <div class="text-sm font-medium text-indigo-600 mb-2">Soal ${index + 1}</div>
-                        <h4 class="font-semibold text-gray-800">${q.question}</h4>
+                        <h4 class="font-semibold text-gray-800" id="preview-question-${index}">${q.question}</h4>
                     </div>
                     <div class="space-y-2">
                         ${q.options.map((option, optIndex) => `
-                            <div class="p-3 rounded-lg border ${optIndex === q.correct ? 'correct-answer border-green-500' : 'border-gray-200 bg-gray-50'}">
-                                <span class="font-medium">${String.fromCharCode(65 + optIndex)}.</span> ${option}
+                            <div class="p-3 rounded-lg border ${optIndex === q.correct ? 'correct-answer border-green-500' : 'border-gray-200 bg-gray-50'}" id="preview-option-${index}-${optIndex}">
+                                <span class="font-medium">${String.fromCharCode(65 + optIndex)}.</span> <span class="option-text">${option}</span>
                                 ${optIndex === q.correct ? '<span class="float-right">✓ Benar</span>' : ''}
                             </div>
                         `).join('')}
@@ -406,6 +436,20 @@ D: Transport Communication Protocol
                     ${q.correct === -1 ? '<div class="mt-3 text-sm text-red-600">⚠️ Jawaban benar belum ditandai</div>' : ''}
                 </div>
             `).join('');
+
+            // Set innerText untuk memastikan teks ditampilkan sebagai teks biasa
+            parsedQuestions.forEach((q, index) => {
+                const questionElement = document.getElementById(`preview-question-${index}`);
+                if (questionElement) questionElement.innerText = q.question;
+
+                q.options.forEach((option, optIndex) => {
+                    const optionElement = document.getElementById(`preview-option-${index}-${optIndex}`);
+                    if (optionElement) {
+                        const textSpan = optionElement.querySelector('.option-text');
+                        if (textSpan) textSpan.innerText = option;
+                    }
+                });
+            });
         }
 
         function updateStats() {
@@ -433,47 +477,47 @@ D: Transport Communication Protocol
             parseQuestions();
         }
 
-       function saveQuestions() {
-    const subjectName = document.getElementById('subject-input').value.trim();
-    const validQuestions = parsedQuestions.filter(q => q.correct !== -1);
+        function saveQuestions() {
+            const subjectName = document.getElementById('subject-input').value.trim();
+            const validQuestions = parsedQuestions.filter(q => q.correct !== -1);
 
-    if (!subjectName) {
-        alert('⚠️ Masukkan nama mata kuliah terlebih dahulu!');
-        return;
-    }
+            if (!subjectName) {
+                alert('⚠️ Masukkan nama mata kuliah terlebih dahulu!');
+                return;
+            }
 
-    if (validQuestions.length === 0) {
-        alert('⚠️ Tidak ada soal valid untuk disimpan!');
-        return;
-    }
+            if (validQuestions.length === 0) {
+                alert('⚠️ Tidak ada soal valid untuk disimpan!');
+                return;
+            }
 
-    console.log('Sending data:', { subject: subjectName, questions: validQuestions });
-    fetch('buat_soal.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'subject=' + encodeURIComponent(subjectName) + '&questions=' + encodeURIComponent(JSON.stringify(validQuestions))
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            document.getElementById('saved-count').textContent = validQuestions.length;
-            document.getElementById('success-modal').classList.remove('hidden');
-            document.getElementById('success-modal').classList.add('flex');
-        } else {
-            alert('❌ ' + data.message);
+            console.log('Sending data:', { subject: subjectName, questions: validQuestions });
+            fetch('buat_soal.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'subject=' + encodeURIComponent(subjectName) + '&questions=' + encodeURIComponent(JSON.stringify(validQuestions))
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('saved-count').textContent = validQuestions.length;
+                    document.getElementById('success-modal').classList.remove('hidden');
+                    document.getElementById('success-modal').classList.add('flex');
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Terjadi kesalahan saat menyimpan soal.');
+            });
+
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.classList.add('success-animation');
+            setTimeout(() => saveBtn.classList.remove('success-animation'), 600);
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('❌ Terjadi kesalahan saat menyimpan soal.');
-    });
-
-    const saveBtn = document.getElementById('save-btn');
-    saveBtn.classList.add('success-animation');
-    setTimeout(() => saveBtn.classList.remove('success-animation'), 600);
-}
 
         function closeSuccessModal() {
             document.getElementById('success-modal').classList.add('hidden');

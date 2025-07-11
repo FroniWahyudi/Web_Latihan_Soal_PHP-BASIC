@@ -20,9 +20,9 @@ if (empty($questions)) {
     die("Belum ada soal untuk mata kuliah ini.");
 }
 
-// Konversi data soal ke format yang sesuai dengan JavaScript, hapus (correct)
+// Konversi data soal ke format yang sesuai dengan JavaScript, hapus (correct) tanpa encoding
 $quizData = array_map(function($q) {
-    // Hapus (correct) dari setiap opsi
+    // Hapus (correct) dari setiap opsi tanpa encoding
     $options = [
         str_replace('(correct)', '', $q['option_a']),
         str_replace('(correct)', '', $q['option_b']),
@@ -39,11 +39,11 @@ $quizData = array_map(function($q) {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis - <?php echo htmlspecialchars($subject['name']); ?></title>
+    <title>Kuis - <?php echo $subject['name']; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -161,7 +161,7 @@ $quizData = array_map(function($q) {
                                     <?php
                                     $subjects = getAllSubjects();
                                     foreach ($subjects as $s) {
-                                        echo '<a href="lembar_soal.php?subject_id=' . $s['subject_id'] . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . htmlspecialchars($s['name']) . '</a>';
+                                        echo '<a href="lembar_soal.php?subject_id=' . $s['subject_id'] . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . $s['name'] . '</a>';
                                     }
                                     ?>
                                 </div>
@@ -202,7 +202,7 @@ $quizData = array_map(function($q) {
                         <div class="py-1">
                             <?php
                             foreach ($subjects as $s) {
-                                echo '<a href="lembar_soal.php?subject_id=' . $s['subject_id'] . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . htmlspecialchars($s['name']) . '</a>';
+                                echo '<a href="lembar_soal.php?subject_id=' . $s['subject_id'] . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . $s['name'] . '</a>';
                             }
                             ?>
                         </div>
@@ -220,7 +220,7 @@ $quizData = array_map(function($q) {
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         <!-- Quiz Header -->
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Kuis - <?php echo htmlspecialchars($subject['name']); ?></h1>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Kuis - <?php echo $subject['name']; ?></h1>
             <p class="text-gray-600">Jawab semua pertanyaan dengan benar untuk mendapatkan skor maksimal</p>
         </div>
 
@@ -242,7 +242,7 @@ $quizData = array_map(function($q) {
                     <span class="text-blue-600 font-bold text-lg" id="questionNumber">1</span>
                 </div>
                 <h2 class="text-2xl font-semibold text-gray-800 leading-relaxed" id="questionText">
-                    <?php echo htmlspecialchars($questions[0]['question_text']); ?>
+                    <?php echo $questions[0]['question_text']; ?>
                 </h2>
             </div>
 
@@ -252,7 +252,7 @@ $quizData = array_map(function($q) {
                     <button class="option-button bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5" onclick="selectAnswer(<?php echo $i; ?>)">
                         <div class="flex items-center">
                             <span class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold mr-4"><?php echo chr(65 + $i); ?></span>
-                            <span class="text-lg font-medium text-gray-700"><?php echo htmlspecialchars(str_replace('(correct)', '', $questions[0]["option_$i"])); ?></span>
+                            <span class="text-lg font-medium text-gray-700"><?php echo $questions[0]["option_" . chr(97 + $i)]; ?></span>
                         </div>
                     </button>
                 <?php endfor; ?>
@@ -356,11 +356,6 @@ $quizData = array_map(function($q) {
             }
         }
 
-        // Handle course selection (tidak perlu karena sudah di dropdown PHP)
-        function selectCourse(course) {
-            console.log(`Selected course: ${course}`);
-        }
-
         function updateProgress() {
             if (isRetryMode) {
                 const progress = ((retryIndex + 1) / retryQuestions.length) * 100;
@@ -392,7 +387,8 @@ $quizData = array_map(function($q) {
                 question = quizData[currentQuestion];
             }
 
-            document.getElementById('questionText').textContent = question.question;
+            // Gunakan innerText untuk menampilkan teks apa adanya
+            document.getElementById('questionText').innerText = question.question;
             
             const options = document.querySelectorAll('.option-button');
             const letters = ['A', 'B', 'C', 'D'];
@@ -403,7 +399,7 @@ $quizData = array_map(function($q) {
                 
                 letterSpan.textContent = letters[index];
                 letterSpan.className = 'w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold mr-4';
-                textSpan.textContent = question.options[index];
+                textSpan.innerText = question.options[index];
                 
                 option.className = 'option-button bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5';
                 option.disabled = false;
