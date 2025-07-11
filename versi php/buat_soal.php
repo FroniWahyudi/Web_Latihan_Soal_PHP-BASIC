@@ -47,24 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             continue; // Lewati soal yang tidak valid
         }
 
-        // Acak urutan opsi tanpa encoding
-        $options = $question['options'];
-        $questionText = $question['question'];
-        $correctIndex = $question['correct'];
-        
-        // Buat array indeks untuk acak
-        $indices = [0, 1, 2, 3];
-        shuffle($indices);
-        
-        // Buat array opsi baru berdasarkan indeks yang sudah diacak
-        $shuffledOptions = [];
-        $newCorrectIndex = -1;
-        foreach ($indices as $newIndex => $oldIndex) {
-            $shuffledOptions[$newIndex] = $options[$oldIndex];
-            if ($oldIndex === $correctIndex) {
-                $newCorrectIndex = $newIndex;
-            }
-        }
+        // Ac répertoire
 
         // Gunakan indeks jawaban benar yang baru
         $correctOption = ['A', 'B', 'C', 'D'][$newCorrectIndex];
@@ -270,9 +253,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="bg-white rounded-xl p-6 shadow-lg">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-800">✏️ Masukkan Soal</h3>
-                        <button onclick="clearInput()" class="text-sm text-gray-500 hover:text-gray-700 underline">
-                            Bersihkan
-                        </button>
+                        <div class="space-x-2">
+                            <button onclick="fixFormat()" class="text-sm text-blue-500 hover:text-blue-700 underline">
+                                Perbaiki Format
+                            </button>
+                            <button onclick="clearInput()" class="text-sm text-gray-500 hover:text-gray-700 underline">
+                                Bersihkan
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="textarea-container rounded-lg border-2 border-gray-300 focus-within:border-indigo-500">
@@ -410,6 +398,83 @@ D: Transport Communication Protocol
 
     <script>
         let parsedQuestions = [];
+
+        function fixFormat() {
+            console.log('Fixing format at:', new Date().toLocaleString('id-ID'));
+            const textarea = document.getElementById('questions-input');
+            let input = textarea.value.trim();
+            if (!input) return;
+
+            const lines = input.split('\n').map(line => line.trim()).filter(line => line);
+            let fixedLines = [];
+            let currentQuestion = null;
+            let expectedOption = 0;
+
+            for (let line of lines) {
+                if (line.match(/^Q:/i)) {
+                    if (currentQuestion && currentQuestion.options.length > 0) {
+                        // Complete the previous question
+                        while (currentQuestion.options.length < 4) {
+                            currentQuestion.options.push(`[Opsi ${String.fromCharCode(65 + currentQuestion.options.length)} kosong]`);
+                        }
+                        if (currentQuestion.correct === -1) {
+                            currentQuestion.options[0] += ' (correct)';
+                            currentQuestion.correct = 0;
+                        }
+                        fixedLines.push(`Q: ${currentQuestion.question}`);
+                        currentQuestion.options.forEach((option, index) => {
+                            fixedLines.push(`${String.fromCharCode(65 + index)}: ${option}`);
+                        });
+                        fixedLines.push('');
+                    }
+                    currentQuestion = {
+                        question: line.substring(2).trim(),
+                        options: [],
+                        correct: -1
+                    };
+                    expectedOption = 0;
+                } else if (line.match(/^[A-D]:/i)) {
+                    if (!currentQuestion) {
+                        currentQuestion = { question: '[Pertanyaan kosong]', options: [], correct: -1 };
+                    }
+                    const prefix = line[0].toUpperCase();
+                    const expectedPrefix = String.fromCharCode(65 + expectedOption);
+                    if (prefix === expectedPrefix) {
+                        let optionText = line.substring(2).trim();
+                        const isCorrect = optionText.includes('(correct)');
+                        optionText = optionText.replace('(correct)', '').trim();
+                        if (optionText === '') {
+                            optionText = `[Opsi ${prefix} kosong]`;
+                        }
+                        currentQuestion.options.push(optionText);
+                        if (isCorrect) {
+                            currentQuestion.correct = currentQuestion.options.length - 1;
+                        }
+                        expectedOption++;
+                    }
+                }
+            }
+
+            // Handle the last question
+            if (currentQuestion && currentQuestion.options.length > 0) {
+                while (currentQuestion.options.length < 4) {
+                    currentQuestion.options.push(`[Opsi ${String.fromCharCode(65 + currentQuestion.options.length)} kosong]`);
+                }
+                if (currentQuestion.correct === -1) {
+                    currentQuestion.options[0] += ' (correct)';
+                    currentQuestion.correct = 0;
+                }
+                fixedLines.push(`Q: ${currentQuestion.question}`);
+                currentQuestion.options.forEach((option, index) => {
+                    fixedLines.push(`${String.fromCharCode(65 + index)}: ${option}`);
+                });
+                fixedLines.push('');
+            }
+
+            // Update textarea with fixed format
+            textarea.value = fixedLines.join('\n').trim();
+            parseQuestions();
+        }
 
         function parseQuestions() {
             console.log('Parsing questions at:', new Date().toLocaleString('id-ID'));
