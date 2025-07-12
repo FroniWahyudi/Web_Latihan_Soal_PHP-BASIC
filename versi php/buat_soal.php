@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
- ?>
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -15,7 +15,6 @@ if (!isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Soal Ujian</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="tailwind.min.css" rel="stylesheet">
     <style>
         .format-example {
             background: linear-gradient(135deg, #f8fafc, #e2e8f0);
@@ -121,13 +120,45 @@ if (!isset($_SESSION['user_id'])) {
         .modal-overlay.active {
             display: flex;
         }
+
+        .button-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .button-secondary {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #374151;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-secondary:hover {
+            background: linear-gradient(135deg, #d1d5db, #9ca3af);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="container mx-auto px-4 py-4">
         <button onclick="window.location.href='dashboard.php'" 
-            class="mb-6 bg-gray-200 hover:bg-gray-300 text-gray-800 px-5 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="button-secondary mb-6 flex items-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
             <span>Kembali ke Dashboard</span>
@@ -187,10 +218,10 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-gray-800">✏️ Masukkan Soal</h3>
                         <div class="space-x-2">
-                            <button onclick="fixFormat()" class="text-sm text-blue-500 hover:text-blue-700 underline">
+                            <button onclick="fixFormat()" class="button-primary text-sm">
                                 Perbaiki Format
                             </button>
-                            <button onclick="clearInput()" class="text-sm text-gray-500 hover:text-gray-700 underline">
+                            <button onclick="clearInput()" class="button-secondary text-sm">
                                 Bersihkan
                             </button>
                         </div>
@@ -239,7 +270,6 @@ D: Memperbarui data
 
 Q: Dalam Algoritma, apa itu Big-O notation?
 A: Cara mengukur efisiensi memori
-
 B: Cara mengukur kompleksitas waktu atau ruang suatu algoritma (correct)
 C: Teknik pengurutan data
 D: Struktur data pohon
@@ -256,7 +286,7 @@ E: Traffic Control Protocol
                                 <span id="question-count">0</span> soal terdeteksi
                             </div>
                             <button onclick="saveQuestions()" id="save-btn" 
-                                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                                    class="button-primary">
                                 💾 Simpan Soal
                             </button>
                         </div>
@@ -308,11 +338,11 @@ E: Traffic Control Protocol
             </p>
             <div class="flex space-x-3">
                 <button onclick="closeSuccessModal()" 
-                        class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                        class="button-secondary flex-1">
                     Tutup
                 </button>
                 <button onclick="addMoreQuestions()" 
-                        class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+                        class="button-primary flex-1">
                     Tambah Lagi
                 </button>
             </div>
@@ -326,7 +356,7 @@ E: Traffic Control Protocol
             <h3 class="text-2xl font-bold text-gray-800 mb-2">Terjadi Kesalahan</h3>
             <p class="text-gray-600 mb-6" id="error-message">Terjadi kesalahan saat menyimpan soal.</p>
             <button onclick="closeErrorModal()" 
-                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                    class="button-primary bg-red-600 hover:bg-red-700">
                 Tutup
             </button>
         </div>
