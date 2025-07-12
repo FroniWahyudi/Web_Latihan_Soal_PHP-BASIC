@@ -44,9 +44,9 @@ $quizData = array_map(function($q) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuis - <?php echo $subject['name']; ?></title>
+    <title>Kuis - <?php echo htmlspecialchars($subject['name']); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
-        <link href="tailwind.min.css" rel="stylesheet">
+    <link href="tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -162,7 +162,7 @@ $quizData = array_map(function($q) {
                                     <?php
                                     $subjects = getAllSubjects();
                                     foreach ($subjects as $s) {
-                                        echo '<a href="lembar_soal.php?subject_id=' . $s['subject_id'] . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . $s['name'] . '</a>';
+                                        echo '<a href="lembar_soal.php?subject_id=' . htmlspecialchars($s['subject_id']) . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . htmlspecialchars($s['name']) . '</a>';
                                     }
                                     ?>
                                 </div>
@@ -195,7 +195,6 @@ $quizData = array_map(function($q) {
                 </a>
                 <!-- Dropdown for Pilih Mata Kuliah in Mobile -->
                 <div class="relative">
-                   ഗ
                     <button onclick="toggleDropdown('mobileDropdown')" class="flex items-center w-full px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <span class="mr-2">📚</span>
                         Pilih Mata Kuliah
@@ -204,7 +203,7 @@ $quizData = array_map(function($q) {
                         <div class="py-1">
                             <?php
                             foreach ($subjects as $s) {
-                                echo '<a href="lembar_soal.php?subject_id=' . $s['subject_id'] . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . $s['name'] . '</a>';
+                                echo '<a href="lembar_soal.php?subject_id=' . htmlspecialchars($s['subject_id']) . '" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">' . htmlspecialchars($s['name']) . '</a>';
                             }
                             ?>
                         </div>
@@ -222,7 +221,7 @@ $quizData = array_map(function($q) {
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         <!-- Quiz Header -->
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Kuis - <?php echo $subject['name']; ?></h1>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Kuis - <?php echo htmlspecialchars($subject['name']); ?></h1>
             <p class="text-gray-600">Jawab semua pertanyaan dengan benar untuk mendapatkan skor maksimal</p>
         </div>
 
@@ -244,7 +243,7 @@ $quizData = array_map(function($q) {
                     <span class="text-blue-600 font-bold text-lg" id="questionNumber">1</span>
                 </div>
                 <h2 class="text-2xl font-semibold text-gray-800 leading-relaxed" id="questionText">
-                    <?php echo $questions[0]['question_text']; ?>
+                    <?php echo htmlspecialchars($questions[0]['question_text']); ?>
                 </h2>
             </div>
 
@@ -400,12 +399,15 @@ $quizData = array_map(function($q) {
                 const optionElement = document.createElement('button');
                 optionElement.className = 'option-button bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5';
                 optionElement.onclick = () => selectAnswer(index);
-                optionElement.innerHTML = `
-                    <div class="flex items-center">
-                        <span class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold mr-4">${letters[index]}</span>
-                        <span class="text-lg font-medium text-gray-700">${optionText}</span>
-                    </div>
+                const optionContent = document.createElement('div');
+                optionContent.className = 'flex items-center';
+                optionContent.innerHTML = `
+                    <span class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold mr-4">${letters[index]}</span>
+                    <span class="text-lg font-medium text-gray-700 option-text"></span>
                 `;
+                const textSpan = optionContent.querySelector('.option-text');
+                textSpan.innerText = optionText || '[Opsi kosong]';
+                optionElement.appendChild(optionContent);
                 optionsContainer.appendChild(optionElement);
             });
 
