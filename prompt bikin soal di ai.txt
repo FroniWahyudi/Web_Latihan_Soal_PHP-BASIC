@@ -1,40 +1,43 @@
-Buat satu set berisi [jumlah] soal pilihan ganda tentang [topik], yang mencakup semua aspek yang dibahas dalam materi yang diberikan. 
-Setiap soal harus memiliki empat opsi jawaban (a, b, c, d), dengan satu jawaban benar yang ditandai secara jelas dengan "(benar)". 
-Pastikan posisi jawaban benar diacak untuk setiap soal agar tidak ada pola yang terdeteksi. Soal-soal harus disusun dengan struktur 
-yang mirip dengan contoh berikut:
+Buat satu set berisi [jumlah] soal pilihan ganda tentang [topik], yang mencakup seluruh aspek penting dari materi yang diberikan.
 
-Soal [kategori1]: [Pertanyaan berdasarkan materi]
+Setiap soal harus terdiri dari satu pertanyaan dan empat pilihan jawaban (A, B, C, D), dengan satu jawaban benar yang ditandai secara jelas dengan (correct) di belakangnya. Urutan jawaban benar harus diacak di setiap soal agar tidak ada pola yang bisa ditebak siswa.
 
-a. [Opsi salah yang sangat mirip dengan jawaban benar]
+Struktur soal harus mengikuti format berikut:
 
-b. [Opsi benar] (benar)
+Q: [Pertanyaan berdasarkan materi]  
+A: [Opsi salah yang mirip dengan jawaban benar]  
+B: [Opsi benar atau salah, sesuai acak]  
+C: [Opsi benar atau salah, sesuai acak] (correct)  
+D: [Opsi salah yang mirip dengan jawaban benar]
 
-c. [Opsi salah yang sangat mirip dengan jawaban benar]
+Q: [Pertanyaan berdasarkan materi]  
+A: [Opsi salah yang mirip dengan jawaban benar]  
+B: [Opsi benar atau salah, sesuai acak]  (correct)  
+C: [Opsi salah yang mirip dengan jawaban benar ] 
+D: [Opsi salah yang mirip dengan jawaban benar]
 
-d. [Opsi salah yang sangat mirip dengan jawaban benar]
+Q: [Pertanyaan berdasarkan materi]  
+A: [Opsi salah yang mirip dengan jawaban benar]  
+B: [Opsi salah yang mirip dengan jawaban benar]  
+C: [Opsi salah yang mirip dengan jawaban benar ] 
+D: [Opsi benar atau salah, sesuai acak]   (correct)  
 
-Soal [kategori2]: [Pertanyaan berdasarkan materi]
+Contoh format lengkap:
 
-a. [Opsi salah yang sangat mirip dengan jawaban benar]
+Q: Apa fungsi utama dari protokol WAP dalam komunikasi mobile?  
+A: Mengelola enkripsi data pada server WAP  
+B: Menyediakan antarmuka pengguna berbasis desktop  
+C: Mengoptimalkan pengiriman data nirkabel melalui gateway WAP (correct)  
+D: Mengatur arsitektur backend dari aplikasi e-commerce
 
-b. [Opsi salah yang sangat mirip dengan jawaban benar]
+🔍 Kriteria tambahan:
 
-c. [Opsi benar] (benar)
+Gunakan kata-kata atau frasa yang sangat mirip dengan materi aslinya agar siswa harus mengingat secara tepat dan berpikir kritis.
 
-d. [Opsi salah yang sangat mirip dengan jawaban benar]
+Distraktor (jawaban salah) harus tampak meyakinkan dan memiliki kemiripan struktur atau makna dengan jawaban benar.
 
-Soal [kategori3]: [Pertanyaan berdasarkan materi]
+Soal-soal harus komprehensif, mencakup semua poin penting dari materi.
 
-a. [Opsi salah yang sangat mirip dengan jawaban benar]
+Jawaban yang benar harus sesuai persis dengan isi materi yang diberikan.
 
-b. [Opsi benar] (benar)
-
-c. [Opsi salah yang sangat mirip dengan jawaban benar]
-
-d. [Opsi salah yang sangat mirip dengan jawaban benar]
-
-Pastikan bahwa setiap soal dan opsi jawaban menggunakan kata, kalimat, atau potongan kata yang sama atau sangat serupa dengan materi yang diberikan, 
-sehingga opsi jawaban salah terlihat menyerupai jawaban benar. Tujuannya adalah agar siswa harus menghafal dan mengingat kata-kata dari materi dengan 
-akurat serta berpikir kritis untuk membedakan jawaban benar di antara opsi yang menantang. Soal-soal harus komprehensif, mencakup semua aspek yang 
-disebutkan dalam materi, dan jawaban benar harus sesuai persis dengan materi serta ditandai dengan jelas.
-Materi yang digunakan adalah sebagai berikut: [materi]
+📝 Materi yang digunakan: [materi]

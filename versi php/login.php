@@ -136,31 +136,7 @@ if (isset($_GET['login'])) {
                         </button>
                     </div>
                 </div>
-
-                <!-- Demo Info -->
-                <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                    <div class="flex items-start">
-                        <svg class="h-5 w-5 text-blue-500 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div class="text-sm text-blue-700">
-                            <p class="font-medium mb-1">Demo Login:</p>
-                            <p>Email: <span class="font-mono bg-white px-1 rounded">demo@edukasi.com</span></p>
-                            <p>Password: <span class="font-mono bg-white px-1 rounded">demo123</span></p>
-                        </div>
-                    </div>
-                </div>
             </form>
-
-            <!-- Register Link -->
-            <div class="text-center animate-[slideUp_0.6s_ease-out]">
-                <p class="text-sm text-gray-600">
-                    Belum punya akun? 
-                    <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                        Daftar sekarang
-                    </a>
-                </p>
-            </div>
         </div>
     </div>
 

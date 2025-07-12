@@ -82,8 +82,8 @@ CREATE TABLE quiz_attempts (
 
 -- Insert data pengguna (dengan hash password yang valid)
 INSERT INTO users (email, username, password, name, role)
-SELECT 'admin@edukasi.com', 'admin', 'admin123', 'Admin User', 'admin'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@edukasi.com');
+SELECT 'froniwahyudi@edukasi.com', 'admin', 'admin123', 'Froni Wahyudi', 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'froniwahyudi@edukasi.com');
 
 INSERT INTO users (email, username, password, name, role)
 SELECT 'demo@edukasi.com', 'demo', 'demo123', 'Demo User', 'user'
