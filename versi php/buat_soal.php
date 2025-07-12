@@ -339,7 +339,7 @@ E: Traffic Control Protocol
                 if (line.match(/^Q:/i)) {
                     if (currentQuestion && currentQuestion.options.length > 0) {
                         // Complete the previous question
-                        while (currentQuestion.options.length < 4) {
+                        while (currentQuestion.options.length < 5) {
                             currentQuestion.options.push(`[Opsi ${String.fromCharCode(65 + currentQuestion.options.length)} kosong]`);
                         }
                         fixedLines.push(`Q: ${currentQuestion.question}`);
@@ -382,7 +382,7 @@ E: Traffic Control Protocol
 
             // Handle the last question
             if (currentQuestion && currentQuestion.options.length > 0) {
-                while (currentQuestion.options.length < 4) {
+                while (currentQuestion.options.length < 5) {
                     currentQuestion.options.push(`[Opsi ${String.fromCharCode(65 + currentQuestion.options.length)} kosong]`);
                 }
                 fixedLines.push(`Q: ${currentQuestion.question}`);
