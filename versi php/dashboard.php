@@ -51,6 +51,7 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="tailwind.min.css">
     <style>
         .subject-card {
             transition: all 0.3s ease;
