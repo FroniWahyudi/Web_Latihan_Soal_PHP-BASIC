@@ -2,6 +2,12 @@
 session_start();
 include 'functions.php';
 
+// Pemeriksaan sesi: pastikan pengguna sudah login
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
 // Ambil semua mata kuliah
 $subjects = getAllSubjects();
 
@@ -107,7 +113,7 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
             <h1 class="text-2xl font-bold text-gray-800">Quiz Dashboard</h1>
             <button onclick="logout()" class="logout-btn bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 flex items-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-2600-4m4 4H7m5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h3a3 3 0 013 3v1"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h3a3 3 0 013 3v1"></path>
                 </svg>
                 <span>Logout</span>
             </button>
@@ -367,7 +373,7 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
     }
 
     function logout() {
-        window.location.href = 'login.php';
+        window.location.href = 'logout.php';
     }
 
     // Event listeners

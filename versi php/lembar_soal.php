@@ -2,6 +2,11 @@
 session_start();
 include 'functions.php';
 
+// Pemeriksaan sesi: pastikan pengguna sudah login
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 // Ambil subject_id dari URL atau default
 $subject_id = isset($_GET['subject_id']) ? (int)$_GET['subject_id'] : null;
 if (!$subject_id) {
