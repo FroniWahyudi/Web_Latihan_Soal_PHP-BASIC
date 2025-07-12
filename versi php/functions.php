@@ -117,15 +117,15 @@ function getQuestionById($id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function updateQuestion($id, $subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_option, $created_by) {
+function updateQuestion($id, $subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $option_e, $correct_option, $created_by) {
     global $pdo;
     try {
         // Validasi correct_option
-        if (!in_array($correct_option, ['A', 'B', 'C', 'D'])) {
-            throw new Exception("Jawaban yang benar harus A, B, C, atau D.");
+        if (!in_array($correct_option, ['A', 'B', 'C', 'D', 'E'])) {
+            throw new Exception("Jawaban yang benar harus A, B, C, D, atau E.");
         }
-        $stmt = $pdo->prepare("UPDATE questions SET subject_id = ?, question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, correct_option = ?, created_by = ? WHERE question_id = ?");
-        return $stmt->execute([$subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_option, $created_by, $id]);
+        $stmt = $pdo->prepare("UPDATE questions SET subject_id = ?, question_text = ?, option_a = ?, option_b = ?, option_c = ?, option_d = ?, option_e = ?, correct_option = ?, created_by = ? WHERE question_id = ?");
+        return $stmt->execute([$subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $option_e, $correct_option, $created_by, $id]);
     } catch (Exception $e) {
         error_log("Error updating question: " . $e->getMessage());
         return false;

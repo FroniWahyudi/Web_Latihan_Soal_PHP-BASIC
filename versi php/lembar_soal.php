@@ -1,4 +1,3 @@
-```php
 <?php
 session_start();
 include 'functions.php';
@@ -572,4 +571,3 @@ $quizData = array_map(function($q) {
     </script>
 </body>
 </html>
-```

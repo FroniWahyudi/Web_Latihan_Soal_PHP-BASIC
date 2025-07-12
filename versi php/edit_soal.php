@@ -37,17 +37,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_question'])) {
     $option_b = trim($_POST['option_b']);
     $option_c = trim($_POST['option_c']);
     $option_d = trim($_POST['option_d']);
+    $option_e = trim($_POST['option_e']);
     $correct_option = $_POST['correct_answer'];
     $created_by = 1; // Asumsi user ID sementara, sesuaikan dengan sistem autentikasi
 
     // Validasi input
-    if (empty($question_text) || empty($option_a) || empty($option_b) || empty($option_c) || empty($option_d)) {
+    if (empty($question_text) || empty($option_a) || empty($option_b) || empty($option_c) || empty($option_d) || empty($option_e)) {
         $error = "Semua kolom harus diisi.";
-    } elseif (!in_array($correct_option, ['A', 'B', 'C', 'D'])) {
-        $error = "Jawaban yang benar harus A, B, C, atau D.";
+    } elseif (!in_array($correct_option, ['A', 'B', 'C', 'D', 'E'])) {
+        $error = "Jawaban yang benar harus A, B, C, D, atau E.";
     } else {
         // Update soal menggunakan fungsi updateQuestion
-        $success = updateQuestion($question_id, $subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_option, $created_by);
+        $success = updateQuestion($question_id, $subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $option_e, $correct_option, $created_by);
         if ($success) {
             header("Location: edit_soal.php?subject_id=$subject_id&index=$current_question_index&saved=1");
             exit;
@@ -178,18 +179,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_question'])) {
                             </div>
 
                             <!-- Option D -->
-                            <div>
-                                <label for="option_d" class="block text-sm font-medium text-gray-700 mb-1">
-                                    Pilihan D
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="option_d" 
-                                    name="option_d"
-                                    class="w-full border-gray-300 rounded-lg bg-gray-50 p-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
-                                    value="<?php echo htmlspecialchars($current_question['option_d']); ?>"
-                                >
-                            </div>
+<div>
+    <label for="option_d" class="block text-sm font-medium text-gray-700 mb-1">
+        Pilihan D
+    </label>
+    <input 
+        type="text" 
+        id="option_d" 
+        name="option_d"
+        class="w-full border-gray-300 rounded-lg bg-gray-50 p-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
+        value="<?php echo htmlspecialchars($current_question['option_d']); ?>"
+    >
+</div>
+
+<!-- Option E -->
+<div>
+    <label for="option_e" class="block text-sm font-medium text-gray-700 mb-1">
+        Pilihan E
+    </label>
+    <input 
+        type="text" 
+        id="option_e" 
+        name="option_e"
+        class="w-full border-gray-300 rounded-lg bg-gray-50 p-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200 focus:-translate-y-px focus:shadow-md"
+        value="<?php echo htmlspecialchars($current_question['option_e'] ?? ''); ?>"
+    >
+</div>
                         </div>
 
                         <!-- Correct Answer Dropdown -->
@@ -206,6 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_question'])) {
                                 <option value="B" <?php echo $correct_option === 'B' ? 'selected' : ''; ?>>B</option>
                                 <option value="C" <?php echo $correct_option === 'C' ? 'selected' : ''; ?>>C</option>
                                 <option value="D" <?php echo $correct_option === 'D' ? 'selected' : ''; ?>>D</option>
+                                <option value="E" <?php echo $correct_option === 'E' ? 'selected' : ''; ?>>E</option>
                             </select>
                         </div>
 
@@ -271,16 +287,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_question'])) {
                                 <?php endif; ?>
                             </div>
                         </div>
+<!-- Preview Option D -->
+<div id="previewOptionD" class="<?php echo $correct_option === 'D' ? 'bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-lg border-green-500 border' : 'border-gray-200 bg-gray-50 p-3 rounded-lg border'; ?> transition-all duration-200">
+    <div class="flex items-center justify-between">
+        <span><strong>D.</strong> <span class="ml-2"><?php echo htmlspecialchars($current_question['option_d']); ?></span></span>
+        <?php if ($correct_option === 'D'): ?>
+            <span class="text-sm font-medium">✓ Benar</span>
+        <?php endif; ?>
+    </div>
+</div>
 
-                        <!-- Preview Option D -->
-                        <div id="previewOptionD" class="<?php echo $correct_option === 'D' ? 'bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-lg border-green-500 border' : 'border-gray-200 bg-gray-50 p-3 rounded-lg border'; ?> transition-all duration-200">
-                            <div class="flex items-center justify-between">
-                                <span><strong>D.</strong> <span class="ml-2"><?php echo htmlspecialchars($current_question['option_d']); ?></span></span>
-                                <?php if ($correct_option === 'D'): ?>
-                                    <span class="text-sm font-medium">✓ Benar</span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+<!-- Preview Option E -->
+<div id="previewOptionE" class="<?php echo $correct_option === 'E' ? 'bg-gradient-to-r from-green-500 to-green-700 text-white p-3 rounded-lg border-green-500 border' : 'border-gray-200 bg-gray-50 p-3 rounded-lg border'; ?> transition-all duration-200">
+    <div class="flex items-center justify-between">
+        <span><strong>E.</strong> <span class="ml-2"><?php echo htmlspecialchars($current_question['option_e'] ?? ''); ?></span></span>
+        <?php if ($correct_option === 'E'): ?>
+            <span class="text-sm font-medium">✓ Benar</span>
+        <?php endif; ?>
+    </div>
+</div>
                     </div>
 
                     <!-- Question Navigation -->
