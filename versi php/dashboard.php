@@ -8,6 +8,9 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Ambil nama pengguna dari sesi, fallback ke 'Pengguna' jika tidak ada
+$user_name = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'Pengguna';
+
 // Ambil semua mata kuliah
 $subjects = getAllSubjects();
 
@@ -48,7 +51,6 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Dashboard</title>
     <link href="tailwind.min.css" rel="stylesheet">
-
     <style>
         .subject-card {
             transition: all 0.3s ease;
@@ -104,10 +106,29 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
         .logout-btn:hover {
             background-color: #dc2626;
         }
+
+        .welcome-text {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
+        <!-- Welcome Message -->
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 welcome-text">
+                Selamat Datang, <?php echo $user_name; ?>!
+            </h1>
+            <p class="text-lg text-gray-600 welcome-text">
+                Mau belajar apa hari ini?
+            </p>
+        </div>
+
         <!-- Header with Logout Button -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Quiz Dashboard</h1>
@@ -386,7 +407,7 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
 
     // Initialize
     renderSubjects();
-</script>
+    </script>
     <footer class="mt-12 py-6 text-center text-gray-500 text-sm">
         © 2025 froniwahyudi. All rights reserved.
     </footer>

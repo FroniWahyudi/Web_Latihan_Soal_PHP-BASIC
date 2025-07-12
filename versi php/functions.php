@@ -182,19 +182,43 @@ function getQuizAttemptsByResultId($result_id) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function loginUser($identifier, $password) {
-    global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? OR username = ?");
-    $stmt->execute([$identifier, $identifier]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+function loginUser($email_or_username, $password) {
+    $conn = new mysqli('localhost', 'root', '', 'web_soal_php_basic');
 
-    if ($user && $password === $user['password']) {
-        return ['status' => 'success', 'user' => $user];
+    if ($conn->connect_error) {
+        error_log("Koneksi database gagal: " . $conn->connect_error);
+        return ['status' => 'error', 'message' => 'Koneksi database gagal: ' . $conn->connect_error];
+    }
+
+    $stmt = $conn->prepare("SELECT user_id, name, password FROM users WHERE email = ? OR username = ?");
+    $stmt->bind_param("ss", $email_or_username, $email_or_username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        error_log("User ditemukan: " . print_r($user, true)); // Debugging
+        if ($password === $user['password']) {
+            $update_stmt = $conn->prepare("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE user_id = ?");
+            $update_stmt->bind_param("i", $user['user_id']);
+            $update_stmt->execute();
+            $update_stmt->close();
+            $stmt->close();
+            $conn->close();
+            return ['status' => 'success', 'user' => ['user_id' => $user['user_id'], 'name' => $user['name']]];
+        } else {
+            error_log("Kata sandi salah untuk $email_or_username");
+            $stmt->close();
+            $conn->close();
+            return ['status' => 'error', 'message' => 'Kata sandi salah'];
+        }
     } else {
-        return ['status' => 'error'];
+        error_log("Pengguna tidak ditemukan: $email_or_username");
+        $stmt->close();
+        $conn->close();
+        return ['status' => 'error', 'message' => 'Pengguna tidak ditemukan'];
     }
 }
-
 function deleteSubjectWithQuestions($id) {
     global $pdo;
     try {
