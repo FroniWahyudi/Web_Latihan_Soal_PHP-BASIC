@@ -7,21 +7,26 @@ function sendResponse($status, $message, $data = []) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendResponse('error', 'Metode request harus POST.');
+// Fungsi untuk mengacak opsi dan memperbarui indeks jawaban benar
+function shuffleOptions(&$options, &$correctIndex) {
+    // Buat array dengan indeks untuk melacak jawaban benar
+    $indexedOptions = array_map(function($opt, $idx) {
+        return ['option' => $opt, 'index' => $idx];
+    }, $options, array_keys($options));
+    
+    // Acak array menggunakan algoritma Fisher-Yates
+    for ($i = count($indexedOptions) - 1; $i > 0; $i--) {
+        $j = rand(0, $i);
+        [$indexedOptions[$i], $indexedOptions[$j]] = [$indexedOptions[$j], $indexedOptions[$i]];
+    }
+    
+    // Perbarui opsi dan indeks jawaban benar
+    $options = array_column($indexedOptions, 'option');
+    $newCorrectIndex = array_search($correctIndex, array_column($indexedOptions, 'index'));
+    
+    return $newCorrectIndex;
 }
 
-// (Sisanya kode PHP Anda untuk memproses subject dan questions)
-// Sertakan file functions.php untuk menggunakan fungsi database
-require_once 'functions.php';
-
-// Set header untuk mengembalikan respons dalam format JSON
-header('Content-Type: application/json');
-
-// Fungsi untuk mengembalikan respons JSON
-
-
-// Periksa apakah request adalah POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendResponse('error', 'Metode request harus POST.');
 }
@@ -92,22 +97,27 @@ try {
             throw new Exception("Soal ke-" . ($index + 1) . ": Ada opsi jawaban yang kosong.");
         }
 
-        $correct_option = strtoupper(chr(65 + $question['correct'])); // Konversi indeks (0=A, 1=B, dst.)
+        // Acak opsi dan perbarui indeks jawaban benar
+        $options = $question['options'];
+        $correctIndex = $question['correct'];
+        $newCorrectIndex = shuffleOptions($options, $correctIndex);
+        $correct_option = strtoupper(chr(65 + $newCorrectIndex)); // Konversi indeks baru ke huruf (A, B, C, D, E)
+
         if (!in_array($correct_option, ['A', 'B', 'C', 'D', 'E'])) {
-            throw new Exception("Soal ke-" . ($index + 1) . ": Jawaban benar tidak valid.");
+            throw new Exception("Soal ke-" . ($index + 1) . ": Jawaban benar tidak valid setelah pengacakan.");
         }
 
         // Siapkan data untuk createQuestion
-        $option_e = isset($question['options'][4]) ? $question['options'][4] : null;
+        $option_e = isset($options[4]) ? $options[4] : null;
 
         // Simpan soal ke database
         $result = createQuestion(
             $subject_id,
             $question['question'],
-            $question['options'][0],
-            $question['options'][1],
-            $question['options'][2],
-            $question['options'][3],
+            $options[0],
+            $options[1],
+            $options[2],
+            $options[3],
             $correct_option,
             $created_by,
             $option_e
