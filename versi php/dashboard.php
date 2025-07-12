@@ -45,12 +45,12 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Dashboard</title>
-    <link href="tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .subject-card {
             transition: all 0.3s ease;
@@ -107,31 +107,61 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
             background-color: #dc2626;
         }
 
+        .welcome-container {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border-radius: 1rem;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
         .welcome-text {
-            animation: slideIn 0.5s ease-out;
+            animation: slideIn 0.8s ease-out;
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
+            from { opacity: 0; transform: translateX(-30px); }
             to { opacity: 1; transform: translateX(0); }
+        }
+
+        .welcome-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30v4h-4v2h4v4h2v-4h4v-2h-4V0h-2zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 0v4H0v2h4v4h2V6h4V4H6V0H4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
         <!-- Welcome Message -->
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 welcome-text">
-                Selamat Datang, <?php echo $user_name; ?>!
-            </h1>
-            <p class="text-lg text-gray-600 welcome-text">
-                Mau belajar apa hari ini?
-            </p>
+        <div class="welcome-container mb-8 text-white relative">
+            <div class="welcome-bg"></div>
+            <div class="relative z-10">
+                <h1 class="text-4xl font-extrabold welcome-text mb-2">
+                    Selamat Datang, <?php echo $user_name; ?>!
+                </h1>
+                <p class="text-lg welcome-text opacity-90">
+                    Siap menjelajahi dunia pengetahuan hari ini? Pilih mata kuliah dan mulai kuis sekarang!
+                </p>
+                <div class="mt-4 flex space-x-4">
+                    <a href="#subjects-grid" class="inline-block bg-white text-indigo-600 px-6 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-all">
+                        Lihat Mata Kuliah
+                    </a>
+                    <a href="buat_soal.php" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-all">
+                        Buat Soal Baru
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Header with Logout Button -->
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Quiz Dashboard</h1>
+            <h1 class="text-2xl font-bold text-gray-800">Dashboard Kuis</h1>
             <button onclick="logout()" class="logout-btn bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 flex items-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h3a3 3 0 013 3v1"></path>
