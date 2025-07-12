@@ -1,6 +1,6 @@
 Buat satu set berisi [jumlah] soal pilihan ganda tentang [topik], yang mencakup seluruh aspek penting dari materi yang diberikan.
 
-Setiap soal harus terdiri dari satu pertanyaan dan empat pilihan jawaban (A, B, C, D), dengan satu jawaban benar yang ditandai secara jelas dengan (correct) di belakangnya. Urutan jawaban benar harus diacak di setiap soal agar tidak ada pola yang bisa ditebak siswa.
+Setiap soal harus terdiri dari satu pertanyaan dan empat pilihan jawaban (A, B, C, D, E), dengan satu jawaban benar yang ditandai secara jelas dengan (correct) di belakangnya. Urutan jawaban benar harus diacak di setiap soal agar tidak ada pola yang bisa ditebak siswa.
 
 Struktur soal harus mengikuti format berikut:
 
@@ -9,18 +9,21 @@ A: [Opsi salah yang mirip dengan jawaban benar]
 B: [Opsi benar atau salah, sesuai acak]  
 C: [Opsi benar atau salah, sesuai acak] (correct)  
 D: [Opsi salah yang mirip dengan jawaban benar]
+E: [Opsi salah yang mirip dengan jawaban benar]
 
 Q: [Pertanyaan berdasarkan materi]  
 A: [Opsi salah yang mirip dengan jawaban benar]  
 B: [Opsi benar atau salah, sesuai acak]  (correct)  
 C: [Opsi salah yang mirip dengan jawaban benar ] 
 D: [Opsi salah yang mirip dengan jawaban benar]
+E: [Opsi salah yang mirip dengan jawaban benar]
 
 Q: [Pertanyaan berdasarkan materi]  
 A: [Opsi salah yang mirip dengan jawaban benar]  
 B: [Opsi salah yang mirip dengan jawaban benar]  
 C: [Opsi salah yang mirip dengan jawaban benar ] 
 D: [Opsi benar atau salah, sesuai acak]   (correct)  
+E: [Opsi salah yang mirip dengan jawaban benar]   
 
 Contoh format lengkap:
 
@@ -29,6 +32,7 @@ A: Mengelola enkripsi data pada server WAP
 B: Menyediakan antarmuka pengguna berbasis desktop  
 C: Mengoptimalkan pengiriman data nirkabel melalui gateway WAP (correct)  
 D: Mengatur arsitektur backend dari aplikasi e-commerce
+E: Mengatur data backend dari aplikasi e-commerce
 
 🔍 Kriteria tambahan:
 
