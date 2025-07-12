@@ -27,11 +27,10 @@ $quizData = array_map(function($q) {
         $q['option_a'],
         $q['option_b'],
         $q['option_c'],
-        $q['option_d']
+        $q['option_d'],
+        $q['option_e']
     ];
-    if (!empty($q['option_e'])) {
-        $options[] = $q['option_e'];
-    }
+   
     $correct = array_search($q['correct_option'], ['A', 'B', 'C', 'D', 'E']);
     return [
         'question' => $q['question_text'],
@@ -48,6 +47,7 @@ $quizData = array_map(function($q) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuis - <?php echo $subject['name']; ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
+        <link href="tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {

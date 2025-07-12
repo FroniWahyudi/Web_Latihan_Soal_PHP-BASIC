@@ -91,15 +91,10 @@ function deleteSubject($id) {
 /**
  * Fungsi untuk Soal (Questions)
  */
-function createQuestion($subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_option, $created_by) {
+function createQuestion($subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_option, $created_by, $option_e = null) {
     global $pdo;
-    try {
-        $stmt = $pdo->prepare("INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, correct_option, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        return $stmt->execute([$subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $correct_option, $created_by]);
-    } catch (PDOException $e) {
-        error_log("Error creating question: " . $e->getMessage());
-        return false;
-    }
+    $stmt = $pdo->prepare("INSERT INTO questions (subject_id, question_text, option_a, option_b, option_c, option_d, option_e, correct_option, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    return $stmt->execute([$subject_id, $question_text, $option_a, $option_b, $option_c, $option_d, $option_e, $correct_option, $created_by]);
 }
 
 function getAllQuestions() {
