@@ -1,3 +1,4 @@
+```php
 <?php
 session_start();
 include 'functions.php';
@@ -28,7 +29,10 @@ $quizData = array_map(function($q) {
         $q['option_c'],
         $q['option_d']
     ];
-    $correct = array_search($q['correct_option'], ['A', 'B', 'C', 'D']);
+    if (!empty($q['option_e'])) {
+        $options[] = $q['option_e'];
+    }
+    $correct = array_search($q['correct_option'], ['A', 'B', 'C', 'D', 'E']);
     return [
         'question' => $q['question_text'],
         'options' => $options,
@@ -192,6 +196,7 @@ $quizData = array_map(function($q) {
                 </a>
                 <!-- Dropdown for Pilih Mata Kuliah in Mobile -->
                 <div class="relative">
+                   ഗ
                     <button onclick="toggleDropdown('mobileDropdown')" class="flex items-center w-full px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <span class="mr-2">📚</span>
                         Pilih Mata Kuliah
@@ -246,14 +251,14 @@ $quizData = array_map(function($q) {
 
             <!-- Answer Options -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="optionsContainer">
-                <?php for ($i = 0; $i < 4; $i++): ?>
+                <?php foreach ($quizData[0]['options'] as $i => $option): ?>
                     <button class="option-button bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5" onclick="selectAnswer(<?php echo $i; ?>)">
                         <div class="flex items-center">
                             <span class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold mr-4"><?php echo chr(65 + $i); ?></span>
-                            <span class="text-lg font-medium text-gray-700"><?php echo $questions[0]["option_" . chr(97 + $i)]; ?></span>
+                            <span class="text-lg font-medium text-gray-700"><?php echo htmlspecialchars($option); ?></span>
                         </div>
                     </button>
-                <?php endfor; ?>
+                <?php endforeach; ?>
             </div>
         </div>
 
@@ -384,23 +389,25 @@ $quizData = array_map(function($q) {
                 question = quizData[currentQuestion];
             }
 
-            console.log('Question:', question); // Debugging
+            console.log('Question:', question);
 
             document.getElementById('questionText').innerText = question.question;
             
-            const options = document.querySelectorAll('.option-button');
-            const letters = ['A', 'B', 'C', 'D'];
-            
-            options.forEach((option, index) => {
-                const letterSpan = option.querySelector('span:first-child');
-                const textSpan = option.querySelector('span:last-child');
-                
-                letterSpan.textContent = letters[index];
-                letterSpan.className = 'w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold mr-4';
-                textSpan.innerText = question.options[index];
-                
-                option.className = 'option-button bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5';
-                option.disabled = false;
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = ''; // Kosongkan container sebelum menambahkan opsi baru
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+
+            question.options.forEach((optionText, index) => {
+                const optionElement = document.createElement('button');
+                optionElement.className = 'option-button bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 rounded-xl p-6 text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5';
+                optionElement.onclick = () => selectAnswer(index);
+                optionElement.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold mr-4">${letters[index]}</span>
+                        <span class="text-lg font-medium text-gray-700">${optionText}</span>
+                    </div>
+                `;
+                optionsContainer.appendChild(optionElement);
             });
 
             document.getElementById('questionCard').classList.add('fade-in');
@@ -419,7 +426,7 @@ $quizData = array_map(function($q) {
                 question = quizData[currentQuestion];
             }
             
-            console.log('Selected:', selectedIndex, 'Correct:', question.correct); // Debugging
+            console.log('Selected:', selectedIndex, 'Correct:', question.correct);
             
             const options = document.querySelectorAll('.option-button');
             options.forEach(option => option.disabled = true);
@@ -565,3 +572,4 @@ $quizData = array_map(function($q) {
     </script>
 </body>
 </html>
+```
