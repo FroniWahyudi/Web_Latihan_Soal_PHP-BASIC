@@ -51,6 +51,7 @@ $quizData = array_map(function($q) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuis - <?php echo htmlspecialchars($subject['name']); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwindscript.js"></script>
     <link href="tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
