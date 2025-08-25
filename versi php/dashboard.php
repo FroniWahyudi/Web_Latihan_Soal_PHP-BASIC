@@ -135,6 +135,124 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
             opacity: 0.1;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30v4h-4v2h4v4h2v-4h4v-2h-4V0h-2zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 0v4H0v2h4v4h2V6h4V4H6V0H4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1f2937;
+            color: #e5e7eb;
+        }
+
+        body.dark-mode .bg-gray-100 {
+            background-color: #111827;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1f2937;
+        }
+
+        body.dark-mode .text-gray-800 {
+            color: #e5e7eb;
+        }
+
+        body.dark-mode .text-gray-600 {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .text-gray-500 {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .text-gray-700 {
+            color: #d1d5db;
+        }
+
+        body.dark-mode .text-gray-900 {
+            color: #f3f4f6;
+        }
+
+        body.dark-mode .border-gray-300 {
+            border-color: #374151;
+        }
+
+        body.dark-mode .bg-red-100 {
+            background-color: #7f1d1d;
+        }
+
+        body.dark-mode .text-red-600 {
+            color: #f87171;
+        }
+
+        body.dark-mode .bg-blue-100 {
+            background-color: #1e40af;
+        }
+
+        body.dark-mode .text-blue-600 {
+            color: #60a5fa;
+        }
+
+        body.dark-mode .bg-green-100 {
+            background-color: #065f46;
+        }
+
+        body.dark-mode .text-green-600 {
+            color: #34d399;
+        }
+
+        body.dark-mode .bg-purple-100 {
+            background-color: #5b21b6;
+        }
+
+        body.dark-mode .text-purple-600 {
+            color: #a78bfa;
+        }
+
+        body.dark-mode .search-bar {
+            background-color: #374151;
+            color: #e5e7eb;
+        }
+
+        body.dark-mode .search-bar:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+
+        body.dark-mode .subject-card {
+            box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .subject-card:hover {
+            box-shadow: 0 12px 24px -4px rgba(255, 255, 255, 0.15);
+        }
+
+        /* Toggle Switch */
+        .theme-toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle.dark::after {
+            transform: translateX(24px);
+        }
+
+        .theme-toggle.dark {
+            background-color: #4b5563;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -160,15 +278,18 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
             </div>
         </div>
 
-        <!-- Header with Logout Button -->
+        <!-- Header with Logout Button and Theme Toggle -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Dashboard Kuis</h1>
-            <button onclick="logout()" class="logout-btn bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h3a3 3 0 013 3v1"></path>
-                </svg>
-                <span>Logout</span>
-            </button>
+            <div class="flex items-center space-x-4">
+                <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"></div>
+                <button onclick="logout()" class="logout-btn bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h3a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Logout</span>
+                </button>
+            </div>
         </div>
 
         <!-- Search and Add Section -->
@@ -316,6 +437,25 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
     let filteredSubjects = [...subjects];
     let subjectToDelete = null;
 
+    // Theme Toggle Function
+    function toggleTheme() {
+        const body = document.body;
+        const toggle = document.getElementById('theme-toggle');
+        body.classList.toggle('dark-mode');
+        toggle.classList.toggle('dark');
+        const isDarkMode = body.classList.contains('dark-mode');
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    }
+
+    // Initialize Theme
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('theme-toggle').classList.add('dark');
+        }
+    }
+
     function renderSubjects() {
         const grid = document.getElementById('subjects-grid');
         const emptyState = document.getElementById('empty-state');
@@ -437,6 +577,7 @@ $completedQuizzes = 0; // Sesuaikan dengan data yang ada, misalnya dari quiz_res
     });
 
     // Initialize
+    initTheme();
     renderSubjects();
     </script>
     <footer class="mt-12 py-6 text-center text-gray-500 text-sm">

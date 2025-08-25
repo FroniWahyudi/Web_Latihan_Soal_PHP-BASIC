@@ -143,6 +143,119 @@ $quizData = array_map(function($q) {
         .dropdown-menu::-webkit-scrollbar-thumb:hover {
             background: #718096;
         }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1f2937;
+            color: #e5e7eb;
+        }
+
+        body.dark-mode .bg-gray-100 {
+            background-color: #111827;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1f2937;
+        }
+
+        body.dark-mode .navbar-sticky {
+            background-color: rgba(31, 41, 55, 0.95);
+        }
+
+        body.dark-mode .text-gray-800 {
+            color: #e5e7eb;
+        }
+
+        body.dark-mode .text-gray-600 {
+            color: #9ca3af;
+        }
+
+        body.dark-mode .text-gray-700 {
+            color: #d1d5db;
+        }
+
+        body.dark-mode .border-gray-200 {
+            border-color: #374151;
+        }
+
+        body.dark-mode .border-gray-100 {
+            border-color: #374151;
+        }
+
+        body.dark-mode .bg-gray-50 {
+            background-color: #374151;
+        }
+
+        body.dark-mode .bg-blue-100 {
+            background-color: #1e40af;
+        }
+
+        body.dark-mode .text-blue-600 {
+            color: #60a5fa;
+        }
+
+        body.dark-mode .bg-green-50 {
+            background-color: #065f46;
+        }
+
+        body.dark-mode .text-green-600 {
+            color: #34d399;
+        }
+
+        body.dark-mode .bg-red-50 {
+            background-color: #7f1d1d;
+        }
+
+        body.dark-mode .text-red-600 {
+            color: #f87171;
+        }
+
+        body.dark-mode .bg-blue-50 {
+            background-color: #1e40af;
+        }
+
+        body.dark-mode .text-blue-700 {
+            color: #60a5fa;
+        }
+
+        body.dark-mode .bg-green-100 {
+            background-color: #065f46;
+        }
+
+        body.dark-mode .text-green-500 {
+            color: #34d399;
+        }
+
+        /* Toggle Switch */
+        .theme-toggle {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background-color: #ccc;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle.dark::after {
+            transform: translateX(24px);
+        }
+
+        .theme-toggle.dark {
+            background-color: #4b5563;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -181,13 +294,16 @@ $quizData = array_map(function($q) {
                     </div>
                 </div>
                 
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
+                <!-- Mobile menu button and Theme Toggle -->
+                <div class="flex items-center space-x-4">
+                    <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"></div>
+                    <div class="md:hidden">
+                        <button onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                            <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -344,6 +460,25 @@ $quizData = array_map(function($q) {
         let isRetryMode = false;
         let retryQuestions = [];
         let retryIndex = 0;
+
+        // Theme Toggle Function
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.getElementById('theme-toggle');
+            body.classList.toggle('dark-mode');
+            toggle.classList.toggle('dark');
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
+
+        // Initialize Theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').classList.add('dark');
+            }
+        }
 
         // Toggle mobile menu
         function toggleMobileMenu() {
@@ -559,7 +694,8 @@ $quizData = array_map(function($q) {
             loadQuestion();
         }
 
-        // Initialize quiz
+        // Initialize quiz and theme
+        initTheme();
         loadQuestion();
 
         // Close dropdowns when clicking outside
