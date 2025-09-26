@@ -9,12 +9,21 @@ include 'config.php';
 $mk_id = isset($_GET['mk_id']) ? intval($_GET['mk_id']) : 0;
 $soal_id = isset($_GET['soal_id']) ? intval($_GET['soal_id']) : 0;
 
-// Ambil soal berdasarkan mata_kuliah_id dan soal_id
-if ($soal_id == 0) {
-    $sql = "SELECT * FROM soal WHERE mata_kuliah_id = $mk_id ORDER BY id LIMIT 1";
-} else {
-    $sql = "SELECT * FROM soal WHERE mata_kuliah_id = $mk_id AND id = $soal_id LIMIT 1";
+// Ambil semua id soal untuk penomoran rapi
+$sql_all = "SELECT id FROM soal WHERE mata_kuliah_id = $mk_id ORDER BY id";
+$result_all = $conn->query($sql_all);
+$ids = [];
+while ($row = $result_all->fetch_assoc()) {
+    $ids[] = $row['id'];
 }
+
+// Kalau belum ada soal_id → mulai dari soal pertama
+if ($soal_id == 0 && !empty($ids)) {
+    $soal_id = $ids[0];
+}
+
+// Ambil soal berdasarkan mata_kuliah_id dan soal_id
+$sql = "SELECT * FROM soal WHERE mata_kuliah_id = $mk_id AND id = $soal_id LIMIT 1";
 $result = $conn->query($sql);
 
 if ($result->num_rows == 0) {
@@ -22,6 +31,9 @@ if ($result->num_rows == 0) {
     exit;
 }
 $soal = $result->fetch_assoc();
+
+// Hitung nomor soal rapi
+$nomor_soal = array_search($soal['id'], $ids) + 1;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jawaban = mysqli_real_escape_string($conn, $_POST['jawaban']);
@@ -61,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">
@@ -195,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="glass-effect rounded-2xl p-6 mb-6 fade-in">
                 <div class="flex items-center mb-4">
                     <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
-                        <?php echo $soal_id ?: 1; ?>
+                        <?php echo $nomor_soal; ?>
                     </div>
                     <h2 class="ml-3 text-2xl font-bold text-gray-800">Pertanyaan</h2>
                 </div>
