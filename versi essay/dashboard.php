@@ -9,10 +9,30 @@ include 'config.php';
 
 $role = $_SESSION['role'];
 
+// Set timezone to WIB (Western Indonesia Time)
+date_default_timezone_set('Asia/Jakarta');
+
 // Ambil riwayat dari cookie jika ada
 $riwayat = [];
 if (isset($_COOKIE['riwayat'])) {
     $riwayat = json_decode($_COOKIE['riwayat'], true);
+    if (!is_array($riwayat)) {
+        $riwayat = [];
+    }
+
+    // Filter riwayat: hapus entri yang lebih lama dari 8 jam
+    $current_time = time();
+    $eight_hours_ago = $current_time - (8 * 3600);
+    $filtered_riwayat = [];
+    foreach ($riwayat as $item) {
+        if (isset($item['timestamp']) && $item['timestamp'] >= $eight_hours_ago) {
+            $filtered_riwayat[] = $item;
+        }
+    }
+    $riwayat = $filtered_riwayat;
+
+    // Update cookie dengan riwayat yang sudah difilter
+    setcookie('riwayat', json_encode($riwayat), time() + (24 * 3600), "/"); // Cookie berlaku 24 jam
 }
 
 // Ambil daftar mata kuliah
@@ -38,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> -->
     <link href="..\tailwind.min.css" rel="stylesheet">
     <style>
         body {
@@ -378,7 +397,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
                                 </svg>
                             </div>
                             <div class="ml-4">
-                                <h4 class="text-lg font-semibold text-gray-800"><?php echo $row['nama']; ?></h4>
+                                <h4 class="text-lg font-semibold text-gray-800"><?php echo htmlspecialchars($row['nama']); ?></h4>
                                 <p class="text-sm text-gray-600">Mata Kuliah</p>
                             </div>
                         </div>
@@ -442,8 +461,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
                                 </svg>
                             </div>
                             <div class="ml-4 flex-1">
-                                <p class="text-gray-800 font-medium"><?php echo $item; ?></p>
-                                <p class="text-sm text-gray-600"><?php echo date('H:i A'); ?></p>
+                                <p class="text-gray-800 font-medium"><?php echo htmlspecialchars($item['mata_kuliah']); ?></p>
+                                <p class="text-sm text-gray-600"><?php echo date('H:i', $item['timestamp']) . ' WIB'; ?></p>
                             </div>
                         </div>
                         <?php endforeach; ?>
@@ -474,13 +493,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
         // Current role state
         let currentRole = '<?php echo $role; ?>';
 
-        // Set current date
-        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', {
+        // Set current date in WIB
+        const options = {
+            timeZone: 'Asia/Jakarta',
             weekday: 'long',
             year: 'numeric',
             month: 'long',
-            day: 'numeric'
-        }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        };
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('id-ID', options) + ' WIB';
 
         // Mobile menu toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');

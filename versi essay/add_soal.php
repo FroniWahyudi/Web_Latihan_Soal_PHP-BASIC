@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Handle image upload
     if (!empty($_FILES['gambar']['name'])) {
-        $target_dir = "uploads/";
+        $target_dir = "Uploads/";
         // Create uploads directory if it doesn't exist
         if (!is_dir($target_dir)) {
             mkdir($target_dir, 0755, true);
@@ -189,6 +189,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             object-fit: contain;
             border-radius: 8px;
         }
+
+        .drop-zone {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9fafb;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.dragover {
+            border-color: #667eea;
+            background-color: #e0e7ff;
+        }
     </style>
 </head>
 <body class="gradient-bg min-h-screen">
@@ -305,14 +319,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 id="gambar"
                                 accept="image/jpeg,image/png,image/gif"
                                 class="hidden"
-                                onchange="updateImagePreview()"
+                                onchange="updateImagePreview(event)"
                             >
-                            <label for="gambar" class="file-input-label w-full px-4 py-3 border border-gray-300 rounded-lg bg-white/80 text-gray-500 flex items-center justify-between cursor-pointer">
-                                <span id="fileName">Pilih file gambar...</span>
-                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                                </svg>
-                            </label>
+                            <div id="dropZone" class="drop-zone">
+                                <p class="text-gray-500">Seret dan lepas gambar di sini, atau klik untuk memilih file, atau tekan Ctrl+V untuk menempelkan gambar dari clipboard</p>
+                                <label for="gambar" class="file-input-label mt-2 inline-block px-4 py-2 border border-gray-300 rounded-lg bg-white/80 text-gray-500 cursor-pointer hover:bg-gray-100">
+                                    <span id="fileName">Pilih file gambar...</span>
+                                    <svg class="w-5 h-5 inline ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                    </svg>
+                                </label>
+                            </div>
                         </div>
                         <p class="text-xs text-gray-500 mt-1">
                             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -495,6 +512,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         const resetBtn = document.getElementById('resetBtn');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
+        const dropZone = document.getElementById('dropZone');
 
         // Get preview elements
         const previewPertanyaan = document.getElementById('previewPertanyaan');
@@ -522,9 +540,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Update image preview
-        function updateImagePreview() {
-            const file = gambarInput.files[0];
+        function updateImagePreview(event) {
+            let file;
+            if (event.type === 'change') {
+                file = event.target.files[0];
+            } else if (event.type === 'drop') {
+                file = event.dataTransfer.files[0];
+            } else if (event.type === 'paste') {
+                file = event.clipboardData.files[0];
+            }
+
             if (file) {
+                // Validate file type
+                const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                if (!allowedExtensions.includes(fileExtension)) {
+                    errorMessage.classList.remove('hidden');
+                    document.getElementById('errorText').textContent = 'Format gambar tidak didukung. Gunakan JPG, PNG, atau GIF.';
+                    return;
+                }
+
+                // Validate file size
+                const maxFileSize = 5 * 1024 * 1024; // 5MB
+                if (file.size > maxFileSize) {
+                    errorMessage.classList.remove('hidden');
+                    document.getElementById('errorText').textContent = 'Ukuran gambar terlalu besar. Maksimum 5MB.';
+                    return;
+                }
+
                 fileNameSpan.textContent = file.name;
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -532,6 +575,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     previewGambar.classList.remove('text-gray-400', 'italic');
                 };
                 reader.readAsDataURL(file);
+
+                // Update the file input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                gambarInput.files = dataTransfer.files;
             } else {
                 fileNameSpan.textContent = 'Pilih file gambar...';
                 previewGambar.innerHTML = '<span class="text-gray-400 italic">Gambar akan muncul di sini saat Anda memilih...</span>';
@@ -577,6 +625,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
+        // Handle drag and drop
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            updateImagePreview(e);
+        });
+
+        // Handle paste event
+        document.addEventListener('paste', function(e) {
+            if (e.target !== pertanyaanTextarea && e.target !== kunciTextarea) {
+                updateImagePreview(e);
+            }
+        });
+
         // Event listeners for real-time updates
         pertanyaanTextarea.addEventListener('input', function() {
             updateCharCounter(this, pertanyaanCounter, 1000);
@@ -598,7 +670,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 addSoalForm.reset();
                 updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
                 updateCharCounter(kunciTextarea, kunciCounter, 500);
-                updateImagePreview();
+                updateImagePreview({ target: { files: [] } });
                 updatePreview();
                 updateProgress();
                 errorMessage.classList.add('hidden');
@@ -677,7 +749,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         addSoalForm.reset();
                         updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
                         updateCharCounter(kunciTextarea, kunciCounter, 500);
-                        updateImagePreview();
+                        updateImagePreview({ target: { files: [] } });
                         updatePreview();
                         updateProgress();
                         successMessage.classList.add('hidden');
@@ -713,7 +785,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         updateProgress();
         updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
         updateCharCounter(kunciTextarea, kunciCounter, 500);
-        updateImagePreview();
+        updateImagePreview({ target: { files: [] } });
     </script>
 </body>
 </html>
