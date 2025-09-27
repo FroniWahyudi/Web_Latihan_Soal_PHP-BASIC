@@ -6,16 +6,23 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'user') {
 }
 include 'config.php';
 
+// Set timezone ke WIB (Western Indonesia Time)
+date_default_timezone_set('Asia/Jakarta');
+
 $mk_id = isset($_GET['mk_id']) ? intval($_GET['mk_id']) : 0;
 $soal_id = isset($_GET['soal_id']) ? intval($_GET['soal_id']) : 0;
 
 // Ambil semua id soal untuk penomoran rapi
-$sql_all = "SELECT id FROM soal WHERE mata_kuliah_id = $mk_id ORDER BY id";
-$result_all = $conn->query($sql_all);
+$sql_all = "SELECT id FROM soal WHERE mata_kuliah_id = ? ORDER BY id";
+$stmt_all = $conn->prepare($sql_all);
+$stmt_all->bind_param("i", $mk_id);
+$stmt_all->execute();
+$result_all = $stmt_all->get_result();
 $ids = [];
 while ($row = $result_all->fetch_assoc()) {
     $ids[] = $row['id'];
 }
+$stmt_all->close();
 
 // Kalau belum ada soal_id → mulai dari soal pertama
 if ($soal_id == 0 && !empty($ids)) {
@@ -23,8 +30,12 @@ if ($soal_id == 0 && !empty($ids)) {
 }
 
 // Ambil soal berdasarkan mata_kuliah_id dan soal_id
-$sql = "SELECT * FROM soal WHERE mata_kuliah_id = $mk_id AND id = $soal_id LIMIT 1";
-$result = $conn->query($sql);
+$sql = "SELECT * FROM soal WHERE mata_kuliah_id = ? AND id = ? LIMIT 1";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ii", $mk_id, $soal_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$stmt->close();
 
 if ($result->num_rows == 0) {
     echo "Tidak ada soal.";
@@ -34,6 +45,18 @@ $soal = $result->fetch_assoc();
 
 // Hitung nomor soal rapi
 $nomor_soal = array_search($soal['id'], $ids) + 1;
+
+// Ambil nama mata kuliah untuk riwayat
+$mk_nama = "Unknown";
+$mk_sql = "SELECT nama FROM mata_kuliah WHERE id = ?";
+$mk_stmt = $conn->prepare($mk_sql);
+$mk_stmt->bind_param("i", $mk_id);
+$mk_stmt->execute();
+$mk_result = $mk_stmt->get_result();
+if ($mk_result->num_rows > 0) {
+    $mk_nama = htmlspecialchars($mk_result->fetch_assoc()['nama']);
+}
+$mk_stmt->close();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jawaban = mysqli_real_escape_string($conn, $_POST['jawaban']);
@@ -45,20 +68,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($percent >= 70) {
         // Jawaban benar, simpan riwayat
         $riwayat = isset($_COOKIE['riwayat']) ? json_decode($_COOKIE['riwayat'], true) : [];
-        $mk_sql = "SELECT nama FROM mata_kuliah WHERE id = $mk_id";
-        $mk_result = $conn->query($mk_sql);
-        $mk_nama = $mk_result->fetch_assoc()['nama'];
-        if (!in_array($mk_nama, $riwayat)) {
-            $riwayat[] = $mk_nama;
+        if (!is_array($riwayat)) {
+            $riwayat = [];
         }
-        setcookie('riwayat', json_encode($riwayat), time() + 86400, "/"); // 24 jam
+        // Cek apakah mata kuliah sudah ada di riwayat (berdasarkan nama dan dalam 8 jam terakhir)
+        $current_time = time();
+        $eight_hours_ago = $current_time - (8 * 3600);
+        $already_exists = false;
+        foreach ($riwayat as $item) {
+            if (isset($item['mata_kuliah'], $item['timestamp']) && 
+                $item['mata_kuliah'] === "Mengerjakan soal: $mk_nama" && 
+                $item['timestamp'] >= $eight_hours_ago) {
+                $already_exists = true;
+                break;
+            }
+        }
+        if (!$already_exists) {
+            $riwayat[] = [
+                'mata_kuliah' => "Mengerjakan soal: $mk_nama",
+                'timestamp' => $current_time
+            ];
+            setcookie('riwayat', json_encode($riwayat), time() + (24 * 3600), "/"); // Cookie berlaku 24 jam
+        }
         
         // Simpan skor ke sesi untuk ditampilkan di notifikasi
         $_SESSION['last_score'] = $percent;
         
         // Cari soal berikutnya
-        $next_sql = "SELECT id FROM soal WHERE mata_kuliah_id = $mk_id AND id > " . $soal['id'] . " ORDER BY id LIMIT 1";
-        $next_result = $conn->query($next_sql);
+        $next_sql = "SELECT id FROM soal WHERE mata_kuliah_id = ? AND id > ? ORDER BY id LIMIT 1";
+        $next_stmt = $conn->prepare($next_sql);
+        $next_stmt->bind_param("ii", $mk_id, $soal['id']);
+        $next_stmt->execute();
+        $next_result = $next_stmt->get_result();
         
         if ($next_result->num_rows > 0) {
             $next_soal = $next_result->fetch_assoc();
@@ -67,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Tidak ada soal lagi, arahkan ke halaman yang sama dengan parameter selesai
             header("Location: kerjakan_soal.php?mk_id=$mk_id&selesai=1");
         }
+        $next_stmt->close();
         exit;
     } else {
         $hasil = "Jawaban salah ($percent% mirip). Silakan coba lagi.";
@@ -79,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kerjakan Soal</title>
+    <title>Kerjakan Soal - <?php echo $mk_nama; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
