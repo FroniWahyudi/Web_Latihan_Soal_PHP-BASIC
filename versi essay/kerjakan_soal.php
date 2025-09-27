@@ -74,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -171,6 +170,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: #ef4444;
             font-weight: 500;
         }
+
+        .soal-image {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -216,6 +223,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <p class="text-gray-800 text-lg leading-relaxed">
                         <?php echo htmlspecialchars($soal['pertanyaan']); ?>
                     </p>
+                    <?php if (!empty($soal['gambar']) && file_exists($soal['gambar'])): ?>
+                        <div class="mt-4">
+                            <img src="<?php echo htmlspecialchars($soal['gambar']); ?>" class="soal-image" alt="Gambar Soal">
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 

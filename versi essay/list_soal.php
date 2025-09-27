@@ -136,6 +136,13 @@ $stmt_mk->close();
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
+
+        .soal-image {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -252,6 +259,14 @@ $stmt_mk->close();
                         <h4 class="text-sm font-medium text-gray-700 mb-2">Pertanyaan:</h4>
                         <p class="text-gray-800 bg-white/50 rounded-lg p-3"><?php echo htmlspecialchars($row['pertanyaan']); ?></p>
                     </div>
+                    <?php if (!empty($row['gambar']) && file_exists($row['gambar'])): ?>
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Gambar Soal:</h4>
+                        <div class="bg-white/50 rounded-lg p-3">
+                            <img src="<?php echo htmlspecialchars($row['gambar']); ?>" class="soal-image" alt="Gambar Soal">
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     <div>
                         <h4 class="text-sm font-medium text-gray-700 mb-2">Kunci Jawaban:</h4>
                         <p class="text-gray-800 bg-green-50 rounded-lg p-3"><?php echo htmlspecialchars($row['kunci_jawaban']); ?></p>
@@ -358,4 +373,3 @@ $stmt_mk->close();
     </script>
 </body>
 </html>
-```

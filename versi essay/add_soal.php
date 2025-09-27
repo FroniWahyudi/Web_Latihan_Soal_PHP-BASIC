@@ -9,7 +9,7 @@ include 'config.php';
 
 $mk_id = isset($_GET['mk_id']) ? (int)$_GET['mk_id'] : 0;
 
-// Fetch mata kuliah name (assuming there's a table for it)
+// Fetch mata kuliah name
 $mata_kuliah_name = "Unknown";
 if ($mk_id > 0) {
     $sql = "SELECT nama FROM mata_kuliah WHERE id = $mk_id";
@@ -23,14 +23,48 @@ if ($mk_id > 0) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pertanyaan = mysqli_real_escape_string($conn, $_POST['pertanyaan']);
     $kunci = mysqli_real_escape_string($conn, $_POST['kunci']);
-    if (!empty($pertanyaan) && !empty($kunci)) {
-        $sql = "INSERT INTO soal (mata_kuliah_id, pertanyaan, kunci_jawaban) VALUES ($mk_id, '$pertanyaan', '$kunci')";
+    $gambar_path = NULL;
+
+    // Handle image upload
+    if (!empty($_FILES['gambar']['name'])) {
+        $target_dir = "uploads/";
+        // Create uploads directory if it doesn't exist
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0755, true);
+        }
+        
+        $gambar = $_FILES['gambar'];
+        $file_extension = strtolower(pathinfo($gambar['name'], PATHINFO_EXTENSION));
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+        $max_file_size = 5 * 1024 * 1024; // 5MB
+
+        // Validate image
+        if (!in_array($file_extension, $allowed_extensions)) {
+            $error_message = "Format gambar tidak didukung. Gunakan JPG, PNG, atau GIF.";
+        } elseif ($gambar['size'] > $max_file_size) {
+            $error_message = "Ukuran gambar terlalu besar. Maksimum 5MB.";
+        } else {
+            $new_filename = uniqid() . '.' . $file_extension;
+            $target_file = $target_dir . $new_filename;
+
+            if (move_uploaded_file($gambar['tmp_name'], $target_file)) {
+                $gambar_path = $target_file;
+            } else {
+                $error_message = "Gagal mengunggah gambar.";
+            }
+        }
+    }
+
+    // Proceed with inserting data if no upload errors
+    if (!isset($error_message) && !empty($pertanyaan) && !empty($kunci)) {
+        $gambar_sql = $gambar_path ? "'$gambar_path'" : "NULL";
+        $sql = "INSERT INTO soal (mata_kuliah_id, pertanyaan, kunci_jawaban, gambar) VALUES ($mk_id, '$pertanyaan', '$kunci', $gambar_sql)";
         if ($conn->query($sql)) {
             $success_message = "Soal berhasil ditambahkan!";
         } else {
             $error_message = "Error: " . $conn->error;
         }
-    } else {
+    } elseif (!isset($error_message)) {
         $error_message = "Harap lengkapi semua field yang wajib diisi.";
     }
 }
@@ -139,6 +173,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             background: linear-gradient(145deg, #f8fafc, #e2e8f0);
             border-left: 4px solid #667eea;
         }
+
+        .file-input-label {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background-color: #f3f4f6;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body class="gradient-bg min-h-screen">
@@ -214,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     Form Soal
                 </h3>
 
-                <form id="addSoalForm" method="POST" class="space-y-6">
+                <form id="addSoalForm" method="POST" enctype="multipart/form-data" class="space-y-6">
                     <!-- Pertanyaan Field -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -240,6 +290,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             Tulis pertanyaan yang jelas dan mudah dipahami
+                        </p>
+                    </div>
+
+                    <!-- Image Upload Field -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Gambar Soal (Opsional)
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="file" 
+                                name="gambar" 
+                                id="gambar"
+                                accept="image/jpeg,image/png,image/gif"
+                                class="hidden"
+                                onchange="updateImagePreview()"
+                            >
+                            <label for="gambar" class="file-input-label w-full px-4 py-3 border border-gray-300 rounded-lg bg-white/80 text-gray-500 flex items-center justify-between cursor-pointer">
+                                <span id="fileName">Pilih file gambar...</span>
+                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                            </label>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Format: JPG, PNG, GIF. Maksimum 5MB.
                         </p>
                     </div>
 
@@ -371,6 +450,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <span class="text-gray-400 italic">Pertanyaan akan muncul di sini saat Anda mengetik...</span>
                         </div>
                     </div>
+
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Gambar Soal:</h4>
+                        <div id="previewGambar" class="bg-white/50 rounded-lg p-4 min-h-[100px] border-2 border-dashed border-gray-300 flex items-center justify-center">
+                            <span class="text-gray-400 italic">Gambar akan muncul di sini saat Anda memilih...</span>
+                        </div>
+                    </div>
                     
                     <div>
                         <h4 class="text-sm font-medium text-gray-700 mb-2">Kunci Jawaban:</h4>
@@ -392,6 +478,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <li>• Gunakan bahasa yang jelas dan mudah dipahami</li>
                         <li>• Pastikan pertanyaan tidak ambigu</li>
                         <li>• Berikan kunci jawaban yang lengkap</li>
+                        <li>• Gunakan gambar yang relevan untuk mendukung pertanyaan</li>
                     </ul>
                 </div>
             </div>
@@ -402,6 +489,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Get form elements
         const pertanyaanTextarea = document.getElementById('pertanyaan');
         const kunciTextarea = document.getElementById('kunci');
+        const gambarInput = document.getElementById('gambar');
         const addSoalForm = document.getElementById('addSoalForm');
         const submitBtn = document.getElementById('submitBtn');
         const resetBtn = document.getElementById('resetBtn');
@@ -411,11 +499,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Get preview elements
         const previewPertanyaan = document.getElementById('previewPertanyaan');
         const previewKunci = document.getElementById('previewKunci');
+        const previewGambar = document.getElementById('previewGambar');
         const progressBar = document.getElementById('progressBar');
 
         // Character counters
         const pertanyaanCounter = document.getElementById('pertanyaanCounter');
         const kunciCounter = document.getElementById('kunciCounter');
+        const fileNameSpan = document.getElementById('fileName');
 
         // Update character counter
         function updateCharCounter(textarea, counter, maxLength) {
@@ -431,14 +521,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
+        // Update image preview
+        function updateImagePreview() {
+            const file = gambarInput.files[0];
+            if (file) {
+                fileNameSpan.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewGambar.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview Gambar Soal">`;
+                    previewGambar.classList.remove('text-gray-400', 'italic');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                fileNameSpan.textContent = 'Pilih file gambar...';
+                previewGambar.innerHTML = '<span class="text-gray-400 italic">Gambar akan muncul di sini saat Anda memilih...</span>';
+            }
+            updateProgress();
+        }
+
         // Update progress bar
         function updateProgress() {
             const pertanyaanFilled = pertanyaanTextarea.value.trim().length > 0;
             const kunciFilled = kunciTextarea.value.trim().length > 0;
+            const gambarFilled = gambarInput.files.length > 0;
             
             let progress = 0;
-            if (pertanyaanFilled) progress += 50;
-            if (kunciFilled) progress += 50;
+            if (pertanyaanFilled) progress += 40;
+            if (kunciFilled) progress += 40;
+            if (gambarFilled) progress += 20;
             
             progressBar.style.width = progress + '%';
         }
@@ -480,12 +590,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             updateProgress();
         });
 
+        gambarInput.addEventListener('change', updateImagePreview);
+
         // Reset form
         resetBtn.addEventListener('click', function() {
             if (confirm('Apakah Anda yakin ingin mengosongkan form?')) {
                 addSoalForm.reset();
                 updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
                 updateCharCounter(kunciTextarea, kunciCounter, 500);
+                updateImagePreview();
                 updatePreview();
                 updateProgress();
                 errorMessage.classList.add('hidden');
@@ -497,6 +610,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         addSoalForm.addEventListener('submit', function(e) {
             const pertanyaan = pertanyaanTextarea.value.trim();
             const kunci = kunciTextarea.value.trim();
+            const gambar = gambarInput.files[0];
             
             // Client-side validation
             if (!pertanyaan || !kunci) {
@@ -518,6 +632,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 errorMessage.classList.remove('hidden');
                 document.getElementById('errorText').textContent = 'Kunci jawaban terlalu pendek (minimal 5 karakter)';
                 return;
+            }
+
+            if (gambar) {
+                const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                const maxFileSize = 5 * 1024 * 1024; // 5MB
+                const fileExtension = gambar.name.split('.').pop().toLowerCase();
+                
+                if (!allowedExtensions.includes(fileExtension)) {
+                    e.preventDefault();
+                    errorMessage.classList.remove('hidden');
+                    document.getElementById('errorText').textContent = 'Format gambar tidak didukung. Gunakan JPG, PNG, atau GIF.';
+                    return;
+                }
+                
+                if (gambar.size > maxFileSize) {
+                    e.preventDefault();
+                    errorMessage.classList.remove('hidden');
+                    document.getElementById('errorText').textContent = 'Ukuran gambar terlalu besar. Maksimum 5MB.';
+                    return;
+                }
             }
             
             // Show loading state
@@ -543,6 +677,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         addSoalForm.reset();
                         updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
                         updateCharCounter(kunciTextarea, kunciCounter, 500);
+                        updateImagePreview();
                         updatePreview();
                         updateProgress();
                         successMessage.classList.add('hidden');
@@ -564,7 +699,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Go back function
         function goBack() {
-            if (pertanyaanTextarea.value.trim() || kunciTextarea.value.trim()) {
+            if (pertanyaanTextarea.value.trim() || kunciTextarea.value.trim() || gambarInput.files.length > 0) {
                 if (confirm('Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin kembali?')) {
                     window.location.href = 'dashboard.php';
                 }
@@ -578,6 +713,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         updateProgress();
         updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
         updateCharCounter(kunciTextarea, kunciCounter, 500);
+        updateImagePreview();
     </script>
 </body>
 </html>
