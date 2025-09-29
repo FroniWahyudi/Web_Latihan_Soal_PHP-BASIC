@@ -280,8 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
 
         <!-- Main Content -->
         <div class="md:ml-64 min-h-screen p-6">
-            <!-- Header -->
-            <div class="glass-effect rounded-2xl p-6 mb-6 fade-in">
+            <div id="dashboard" class="glass-effect rounded-2xl p-6 mb-6 fade-in">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-gray-800 mb-2">Selamat Datang!</h1>
@@ -380,7 +379,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
             <?php endif; ?>
 
             <!-- Mata Kuliah Cards -->
-            <div class="glass-effect rounded-2xl p-6 mb-6 fade-in">
+            <div id="mata-kuliah" class="glass-effect rounded-2xl p-6 mb-6 fade-in">
                 <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                     <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
@@ -393,7 +392,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
                         <div class="flex items-center mb-4">
                             <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 0v10m0-10h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                 </svg>
                             </div>
                             <div class="ml-4">
@@ -444,7 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
             </div>
 
             <!-- Riwayat Section -->
-            <div class="glass-effect rounded-2xl p-6 fade-in">
+            <div id="riwayat" class="glass-effect rounded-2xl p-6 fade-in">
                 <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                     <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -477,22 +476,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
                 </div>
             </div>
         </div>
-
-        <!-- Role Toggle (Demo Purpose) -->
-        <div class="fixed bottom-6 right-6 z-50">
-            <button id="roleToggle" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300">
-                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                </svg>
-                <span id="roleToggleText">Switch to User</span>
-            </button>
-        </div>
     </div>
 
     <script>
-        // Current role state
-        let currentRole = '<?php echo $role; ?>';
-
         // Set current date in WIB
         const options = {
             timeZone: 'Asia/Jakarta',
@@ -521,49 +507,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mk_id']) && $r
             }
         });
 
-        // Navigation
+        // Improved Navigation
         const navItems = document.querySelectorAll('.nav-item');
         navItems.forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                navItems.forEach(nav => nav.classList.remove('active', 'bg-white/50'));
-                this.classList.add('active', 'bg-white/50');
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                
+                if (targetSection) {
+                    // Smooth scroll to target section
+                    window.scrollTo({
+                        top: targetSection.offsetTop - 80, // Adjusted for header
+                        behavior: 'smooth'
+                    });
+
+                    // Update active class
+                    navItems.forEach(nav => nav.classList.remove('active', 'bg-white/50'));
+                    this.classList.add('active', 'bg-white/50');
+
+                    // Close sidebar on mobile after clicking
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.add('sidebar-hidden');
+                    }
+                }
             });
         });
 
-        // Role toggle functionality
-        const roleToggle = document.getElementById('roleToggle');
-        const roleToggleText = document.getElementById('roleToggleText');
-        const userRole = document.getElementById('userRole');
-        const adminSection = document.getElementById('adminSection');
-        const adminBtns = document.querySelectorAll('.admin-btn');
-        const userBtns = document.querySelectorAll('.user-btn');
-
-        function updateRoleDisplay() {
-            if (currentRole === 'admin') {
-                userRole.textContent = 'Admin';
-                if (adminSection) adminSection.classList.remove('hidden');
-                adminBtns.forEach(btn => btn.classList.remove('hidden'));
-                userBtns.forEach(btn => btn.classList.add('hidden'));
-                roleToggleText.textContent = 'Switch to User';
-            } else {
-                userRole.textContent = 'User';
-                if (adminSection) adminSection.classList.add('hidden');
-                adminBtns.forEach(btn => btn.classList.add('hidden'));
-                userBtns.forEach(btn => btn.classList.remove('hidden'));
-                roleToggleText.textContent = 'Switch to Admin';
-            }
-        }
-
-        roleToggle.addEventListener('click', function() {
-            currentRole = currentRole === 'admin' ? 'user' : 'admin';
-            updateRoleDisplay();
-        });
-
-        // Initialize role display
-        updateRoleDisplay();
-
-        // Add some animation delays for cards
+        // Add animation delays for cards
         const cards = document.querySelectorAll('.fade-in');
         cards.forEach((card, index) => {
             card.style.animationDelay = `${index * 0.1}s`;
