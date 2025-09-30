@@ -352,11 +352,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 class="textarea-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 bg-white/80 resize-none"
                                 placeholder="Masukkan kunci jawaban yang benar..."
                                 rows="4"
-                                maxlength="500"
+                                maxlength="5000"
                                 required
                             ><?php echo isset($_POST['kunci']) ? htmlspecialchars($_POST['kunci']) : ''; ?></textarea>
                             <div class="absolute bottom-2 right-2 text-xs char-counter" id="kunciCounter">
-                                0/500
+                                0/5000
                             </div>
                         </div>
                         <p class="text-xs text-gray-500 mt-1">
@@ -657,7 +657,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
 
         kunciTextarea.addEventListener('input', function() {
-            updateCharCounter(this, kunciCounter, 500);
+            updateCharCounter(this, kunciCounter, 5000);
             updatePreview();
             updateProgress();
         });
@@ -669,7 +669,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (confirm('Apakah Anda yakin ingin mengosongkan form?')) {
                 addSoalForm.reset();
                 updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
-                updateCharCounter(kunciTextarea, kunciCounter, 500);
+                updateCharCounter(kunciTextarea, kunciCounter, 5000);
                 updateImagePreview({ target: { files: [] } });
                 updatePreview();
                 updateProgress();
@@ -748,7 +748,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if (confirm('Soal berhasil ditambahkan! Apakah Anda ingin menambah soal lagi?')) {
                         addSoalForm.reset();
                         updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
-                        updateCharCounter(kunciTextarea, kunciCounter, 500);
+                        updateCharCounter(kunciTextarea, kunciCounter, 5000);
                         updateImagePreview({ target: { files: [] } });
                         updatePreview();
                         updateProgress();
@@ -784,7 +784,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         updatePreview();
         updateProgress();
         updateCharCounter(pertanyaanTextarea, pertanyaanCounter, 1000);
-        updateCharCounter(kunciTextarea, kunciCounter, 500);
+        updateCharCounter(kunciTextarea, kunciCounter, 5000);
         updateImagePreview({ target: { files: [] } });
     </script>
 </body>
