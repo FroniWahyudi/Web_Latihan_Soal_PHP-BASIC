@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kerjakan Soal - <?php echo $mk_nama; ?></title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=wap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body {
@@ -280,6 +280,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         input:checked + .slider:before {
             transform: translateX(26px);
         }
+
+        /* Mobile-friendly button styles */
+        .btn-mobile {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 640px) {
+            .btn-mobile {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -301,10 +318,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <p class="text-gray-600 mb-4">Anda telah menyelesaikan semua soal dengan benar.</p>
                     <p class="text-gray-600 mb-6">Skor terakhir Anda: <span class="font-semibold text-green-600"><?php echo isset($_SESSION['last_score']) ? $_SESSION['last_score'] . '%' : 'N/A'; ?></span></p>
                     <div class="flex justify-center gap-4">
-                        <a href="kerjakan_soal.php?mk_id=<?php echo $mk_id; ?>" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
+                        <a href="kerjakan_soal.php?mk_id=<?php echo $mk_id; ?>" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white btn-mobile hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
                             Ulangi Soal
                         </a>
-                        <a href="index.php" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-2 rounded-xl font-medium hover:from-purple-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
+                        <a href="index.php" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white btn-mobile hover:from-purple-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
                             Kembali ke Dashboard
                         </a>
                     </div>
@@ -385,20 +402,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </svg>
                             Kembali
                         </a>
-                        <div class="flex gap-4">
+                        <div class="flex gap-2">
                             <?php if (isset($_SESSION['repetitive_mode'])): ?>
                                 <button 
                                     type="submit" 
                                     name="toggle_answer"
                                     value="1"
-                                    class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300"
+                                    class="bg-gradient-to-r from-blue-500 to-blue-600 text-white btn-mobile hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300"
                                 >
                                     Cek Jawaban
                                 </button>
                             <?php endif; ?>
                             <button 
                                 type="submit" 
-                                class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-xl font-medium hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300"
+                                class="bg-gradient-to-r from-green-500 to-green-600 text-white btn-mobile hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300"
                             >
                                 Submit
                             </button>
