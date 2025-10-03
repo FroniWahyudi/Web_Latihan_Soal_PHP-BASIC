@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!empty($nama)) {
         $sql = "INSERT INTO mata_kuliah (nama) VALUES ('$nama')";
         if ($conn->query($sql)) {
-            header('Location: dashboard.php');
+            header('Location: index.php');
             exit;
         } else {
             echo "Error: " . $conn->error;

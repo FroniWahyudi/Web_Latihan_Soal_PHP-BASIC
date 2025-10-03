@@ -773,10 +773,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         function goBack() {
             if (pertanyaanTextarea.value.trim() || kunciTextarea.value.trim() || gambarInput.files.length > 0) {
                 if (confirm('Anda memiliki perubahan yang belum disimpan. Apakah Anda yakin ingin kembali?')) {
-                    window.location.href = 'dashboard.php';
+                    window.location.href = 'index.php';
                 }
             } else {
-                window.location.href = 'dashboard.php';
+                window.location.href = 'index.php';
             }
         }
 

@@ -246,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <a href="kerjakan_soal.php?mk_id=<?php echo $mk_id; ?>" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
                             Ulangi Soal
                         </a>
-                        <a href="dashboard.php" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-2 rounded-xl font-medium hover:from-purple-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
+                        <a href="index.php" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-2 rounded-xl font-medium hover:from-purple-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
                             Kembali ke Dashboard
                         </a>
                     </div>
@@ -299,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                     <?php } ?>
                     <div class="flex items-center justify-between mt-4">
-                        <a href="dashboard.php" class="flex items-center text-gray-700 hover:text-purple-600 transition-colors">
+                        <a href="index.php" class="flex items-center text-gray-700 hover:text-purple-600 transition-colors">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                             </svg>

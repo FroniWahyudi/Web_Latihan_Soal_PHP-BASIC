@@ -347,7 +347,7 @@ $stmt_mk->close();
 
         // CRUD Functions
         function goBack() {
-            window.location.href = 'dashboard.php';
+            window.location.href = 'index.php';
         }
 
         function deleteSoal(id) {
