@@ -297,6 +297,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 font-size: 0.75rem;
             }
         }
+
+        .nav-button {
+            min-width: 40px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -336,6 +341,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <span class="slider"></span>
                     </label>
                 </div>
+                <?php if (isset($_SESSION['repetitive_mode'])): ?>
+                    <div class="flex flex-wrap gap-2 justify-center mb-4">
+                        <?php foreach ($ids as $index => $id): ?>
+                            <a href="kerjakan_soal.php?mk_id=<?php echo $mk_id; ?>&soal_id=<?php echo $id; ?>&mode=repetitive" 
+                               class="bg-gradient-to-r <?php echo $id == $soal_id ? 'from-blue-600 to-blue-700' : 'from-gray-400 to-gray-500'; ?> text-white btn-mobile nav-button hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300">
+                                <?php echo $index + 1; ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="glass-effect rounded-2xl p-6 mb-6 fade-in">
