@@ -373,17 +373,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <div class="glass-effect rounded-2xl p-6 fade-in">
                 <form method="POST">
-                    <div class="flex items-center mb-4">
-                        <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="ml-3 text-xl font-bold text-gray-800">Jawaban Anda</h3>
                         </div>
-                        <h3 class="ml-3 text-xl font-bold text-gray-800">Jawaban Anda</h3>
+                        <button 
+                            type="button" 
+                            onclick="document.getElementById('jawaban').value = ''"
+                            class="bg-gradient-to-r from-gray-500 to-gray-600 text-white btn-mobile hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform hover:scale-105 transition-all duration-300"
+                        >
+                            Clear
+                        </button>
                     </div>
                     <div class="relative">
                         <textarea 
                             name="jawaban" 
+                            id="jawaban"
                             class="textarea-focus w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 bg-white/80 resize-none"
                             placeholder="Tulis jawaban Anda di sini..."
                             rows="6"
